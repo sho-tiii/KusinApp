@@ -4,7 +4,7 @@ import {
   signOut, 
   updateProfile 
 } from "firebase/auth";
-import { ref, set, get, serverTimestamp } from "firebase/database";
+import { ref, set, get, update, serverTimestamp } from "firebase/database";
 import { auth, db } from "./firebase";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,6 +35,39 @@ function formatAuthError(error, defaultMessage) {
     default:
       return error?.message || defaultMessage;
   }
+}
+
+/**
+ * Calculates Body Mass Index (BMI) and determines BMI category.
+ * Formula: weight (kg) / (height (m) ^ 2)
+ *
+ * @param {number} heightCm - Height in centimeters
+ * @param {number} weightKg - Weight in kilograms
+ * @returns {{ bmi: number, category: string }}
+ */
+export function calculateBMI(heightCm, weightKg) {
+  const height = parseFloat(heightCm);
+  const weight = parseFloat(weightKg);
+
+  if (!height || !weight || height <= 0 || weight <= 0) {
+    return { bmi: 0, category: "N/A" };
+  }
+
+  const heightInMeters = height / 100;
+  const bmi = parseFloat((weight / (heightInMeters * heightInMeters)).toFixed(1));
+
+  let category = "Normal";
+  if (bmi < 18.5) {
+    category = "Underweight";
+  } else if (bmi >= 18.5 && bmi < 25) {
+    category = "Normal";
+  } else if (bmi >= 25 && bmi < 30) {
+    category = "Overweight";
+  } else {
+    category = "Obese";
+  }
+
+  return { bmi, category };
 }
 
 /**
@@ -92,6 +125,7 @@ export async function registerUser(email, password, displayName, role = "user") 
       displayName: trimmedName,
       email: trimmedEmail,
       role: role,
+      onboardingCompleted: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -100,6 +134,80 @@ export async function registerUser(email, password, displayName, role = "user") 
   } catch (error) {
     throw new Error(
       formatAuthError(error, "Failed to register user. Please try again.")
+    );
+  }
+}
+
+/**
+ * US-03: Save Health & Cooking Skill Onboarding
+ * Saves BMI assessment, dietary/health goals, household/target audience,
+ * and cooking skill level into `/users/{uid}/onboarding`.
+ *
+ * @param {string} uid
+ * @param {object} onboardingData
+ * @param {number} onboardingData.heightCm
+ * @param {number} onboardingData.weightKg
+ * @param {string} onboardingData.primaryGoal - e.g., 'weight_loss', 'healthy_eating', 'budget_meal', 'maintenance', 'muscle_gain'
+ * @param {string} onboardingData.targetAudience - e.g., 'solo', 'couple', 'family_small', 'family_large'
+ * @param {number} onboardingData.householdSize - number of people eating
+ * @param {string} onboardingData.cookingSkill - 'beginner', 'intermediate', 'advanced'
+ * @param {string[]} [onboardingData.dietaryPreferences] - e.g., ['low_sodium', 'diabetic_friendly', 'none']
+ * @returns {Promise<object>}
+ */
+export async function saveUserOnboarding(uid, onboardingData) {
+  if (!uid) {
+    throw new Error("User ID is required to save onboarding.");
+  }
+
+  const height = parseFloat(onboardingData.heightCm);
+  const weight = parseFloat(onboardingData.weightKg);
+
+  if (!height || height <= 0 || height > 260) {
+    throw new Error("Please provide a valid height in cm (e.g., 165).");
+  }
+  if (!weight || weight <= 0 || weight > 350) {
+    throw new Error("Please provide a valid weight in kg (e.g., 60).");
+  }
+  if (!onboardingData.primaryGoal) {
+    throw new Error("Please select your primary meal planning goal.");
+  }
+  if (!onboardingData.cookingSkill) {
+    throw new Error("Please select your cooking skill level.");
+  }
+
+  const { bmi, category: bmiCategory } = calculateBMI(height, weight);
+
+  const payload = {
+    heightCm: height,
+    weightKg: weight,
+    bmi,
+    bmiCategory,
+    primaryGoal: onboardingData.primaryGoal,
+    targetAudience: onboardingData.targetAudience || "solo",
+    householdSize: parseInt(onboardingData.householdSize, 10) || 1,
+    cookingSkill: onboardingData.cookingSkill,
+    dietaryPreferences: Array.isArray(onboardingData.dietaryPreferences)
+      ? onboardingData.dietaryPreferences
+      : [],
+    completedAt: serverTimestamp(),
+  };
+
+  try {
+    // 1. Update user onboarding node
+    const onboardingRef = ref(db, `users/${uid}/onboarding`);
+    await set(onboardingRef, payload);
+
+    // 2. Mark onboardingCompleted: true on user root
+    const userRootRef = ref(db, `users/${uid}`);
+    await update(userRootRef, {
+      onboardingCompleted: true,
+      updatedAt: serverTimestamp(),
+    });
+
+    return { ...payload, onboardingCompleted: true };
+  } catch (error) {
+    throw new Error(
+      error?.message || "Failed to save onboarding assessment. Please try again."
     );
   }
 }
