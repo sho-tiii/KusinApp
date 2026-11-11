@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   sendPasswordResetEmail,
+  sendEmailVerification,
   updateProfile,
   setPersistence,
   browserLocalPersistence,
@@ -12,6 +13,7 @@ import {
 } from "firebase/auth";
 import { ref, set, get, update, serverTimestamp } from "firebase/database";
 import { auth, db } from "../config/firebase";
+import { sendWelcomeEmail, sendOtpEmail } from "./emailService";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -134,6 +136,20 @@ export async function registerUser(email, password, displayName, role = "user") 
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    // 1. Dispatch branded Welcome Email
+    try {
+      await sendWelcomeEmail(trimmedEmail, trimmedName);
+    } catch (welcomeErr) {
+      console.warn("Welcome email dispatch notice:", welcomeErr?.message);
+    }
+
+    // 2. Trigger Firebase Auth official email verification link
+    try {
+      await sendEmailVerification(user);
+    } catch (verifyErr) {
+      console.warn("Firebase email verification dispatch notice:", verifyErr?.message);
+    }
 
     return user;
   } catch (error) {
@@ -299,6 +315,12 @@ export async function loginWithGoogle() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      try {
+        await sendWelcomeEmail(user.email, user.displayName || "Chef");
+      } catch (welcomeErr) {
+        console.warn("Welcome email notice for Google signup:", welcomeErr?.message);
+      }
     }
 
     return user;
@@ -340,6 +362,13 @@ export async function requestPasswordResetOtp(email) {
 
   // Log code to console for testing/verification inspection
   console.log(`[KusinApp Security] 6-digit OTP code dispatched to ${trimmedEmail}: ${otpCode}`);
+
+  // Dispatch branded HTML OTP Email
+  try {
+    await sendOtpEmail(trimmedEmail, otpCode);
+  } catch (otpErr) {
+    console.warn("OTP email dispatch notice:", otpErr?.message);
+  }
 
   // Best effort: trigger Firebase password reset email as well
   try {
