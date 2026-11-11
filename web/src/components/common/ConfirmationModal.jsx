@@ -2,20 +2,24 @@ import React, { useEffect, useRef } from "react";
 
 /**
  * Reusable Confirmation Modal
- * Cohesive, lightweight, accessible dialog for destructive actions
- * (e.g., logging out, resetting onboarding, deleting items) and general confirmations.
+ * Formatted cleanly according to the approved KusinApp UI prototype (POPUP style):
+ * - Large rounded container (border-radius: 24px)
+ * - Clean title with an integrated top-right close '×' button
+ * - Clean descriptive body copy
+ * - Two bottom-right pill action buttons:
+ *     Cancel: rounded pill with light border
+ *     Confirm: solid warm amber / vibrant pill button with subtle shadow
  *
  * @param {object} props
  * @param {boolean} props.isOpen - Controls visibility
  * @param {() => void} props.onClose - Action when cancelled or closed
  * @param {() => void} props.onConfirm - Action when confirmed
- * @param {string} props.title - Modal title
+ * @param {string} props.title - Modal title (e.g., "Sign out of KusinApp", "Remove from collection")
  * @param {React.ReactNode} props.message - Descriptive text or node
- * @param {string} [props.confirmText="Confirm"] - Text for confirm button
- * @param {string} [props.cancelText="Cancel"] - Text for cancel button
- * @param {"danger"|"warning"|"primary"} [props.variant="danger"] - Determines button styling & badge icon
+ * @param {string} [props.confirmText="Confirm"] - Text for confirm action
+ * @param {string} [props.cancelText="Cancel"] - Text for cancel action
+ * @param {"primary"|"danger"|"warning"} [props.variant="primary"] - Button theme
  * @param {boolean} [props.isLoading=false] - Disables buttons and shows spinner while async action runs
- * @param {React.ReactNode} [props.icon] - Optional custom icon
  */
 export default function ConfirmationModal({
   isOpen,
@@ -25,9 +29,8 @@ export default function ConfirmationModal({
   message,
   confirmText = "Confirm",
   cancelText = "Cancel",
-  variant = "danger",
+  variant = "primary",
   isLoading = false,
-  icon,
 }) {
   const confirmButtonRef = useRef(null);
 
@@ -42,7 +45,6 @@ export default function ConfirmationModal({
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    // Auto-focus confirm or cancel button for convenience
     confirmButtonRef.current?.focus();
 
     return () => {
@@ -52,89 +54,62 @@ export default function ConfirmationModal({
 
   if (!isOpen) return null;
 
-  const getVariantStyles = () => {
+  const getConfirmButtonClass = () => {
     switch (variant) {
       case "danger":
-        return {
-          badgeBg: "#fee4e2",
-          badgeColor: "#d92d20",
-          confirmBtnClass: "k-btn--danger",
-          defaultIcon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          ),
-        };
+        return "k-popup-btn-confirm k-popup-btn-confirm--danger";
       case "warning":
-        return {
-          badgeBg: "#fef0c7",
-          badgeColor: "#b54708",
-          confirmBtnClass: "k-btn--warning",
-          defaultIcon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          ),
-        };
+        return "k-popup-btn-confirm k-popup-btn-confirm--warning";
       default:
-        return {
-          badgeBg: "#fef3c7",
-          badgeColor: "#b45309",
-          confirmBtnClass: "k-btn--primary",
-          defaultIcon: (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 16v-4" />
-              <path d="M12 8h.01" />
-            </svg>
-          ),
-        };
+        return "k-popup-btn-confirm";
     }
   };
 
-  const { badgeBg, badgeColor, confirmBtnClass, defaultIcon } = getVariantStyles();
-
   return (
     <div
-      className="k-modal-backdrop"
+      className="k-popup-backdrop"
       onClick={() => {
         if (!isLoading) onClose();
       }}
       role="presentation"
     >
       <div
-        className="k-modal-card"
+        className="k-popup-card"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="k-modal-title"
-        aria-describedby="k-modal-description"
+        aria-labelledby="k-popup-title"
+        aria-describedby="k-popup-description"
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="k-modal-icon-badge"
-          style={{ backgroundColor: badgeBg, color: badgeColor }}
-          aria-hidden="true"
-        >
-          {icon || defaultIcon}
-        </div>
-
-        <div className="k-modal-content">
-          <h2 id="k-modal-title" className="k-modal-title">
+        {/* Header with Title and '×' Close Button */}
+        <div className="k-popup-header">
+          <h2 id="k-popup-title" className="k-popup-title">
             {title}
           </h2>
-          <div id="k-modal-description" className="k-modal-desc">
-            {message}
-          </div>
-        </div>
-
-        <div className="k-modal-actions">
           <button
             type="button"
-            className="k-btn k-btn--outline"
+            className="k-popup-close-btn"
+            onClick={onClose}
+            disabled={isLoading}
+            aria-label="Close dialog"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Message body */}
+        <div id="k-popup-description" className="k-popup-desc">
+          {message}
+        </div>
+
+        {/* Bottom pill actions */}
+        <div className="k-popup-actions">
+          <button
+            type="button"
+            className="k-popup-btn-cancel"
             onClick={onClose}
             disabled={isLoading}
           >
@@ -143,11 +118,11 @@ export default function ConfirmationModal({
           <button
             ref={confirmButtonRef}
             type="button"
-            className={`k-btn ${confirmBtnClass}`}
+            className={getConfirmButtonClass()}
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading && <span className="k-spinner" aria-hidden="true" />}
+            {isLoading && <span className="k-spinner" aria-hidden="true" style={{ width: 14, height: 14 }} />}
             {confirmText}
           </button>
         </div>
