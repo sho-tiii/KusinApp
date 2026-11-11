@@ -1,31 +1,32 @@
-# KusinApp 🍲
+# KusinApp
 
 > **A Smart Filipino Meal Planning and Pantry Management System**  
-> *Lasang Pinoy sa Bawat Luto — Sustansya at Badyet para sa Pamilyang Pilipino.*
+> *Filipino flavors for every meal — balanced nutrition and budget-friendly management for Filipino households.*
 
 ---
 
-## 📌 Talaan ng Nilalaman (Table of Contents)
-1. [Overview ng Proyekto](#-overview-ng-proyekto)
-2. [Project Structure](#-project-structure)
-3. [Prerequisites](#-prerequisites)
-4. [Step-by-Step Setup Guide para sa mga Ka-Group](#-step-by-step-setup-guide-para-sa-mga-ka-group)
-5. [Paano I-test ang mga Features](#-paano-i-test-ang-mga-features)
-6. [Sprint Status & Remaining Backlogs](#-sprint-status--remaining-backlogs)
-7. [Design System & Team Guidelines](#-design-system--team-guidelines)
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Repository Structure](#repository-structure)
+3. [Prerequisites](#prerequisites)
+4. [Step-by-Step Setup Guide](#step-by-step-setup-guide)
+5. [Feature Verification & Testing Guide](#feature-verification--testing-guide)
+6. [Delivered Milestones (Sprint 1)](#delivered-milestones-sprint-1)
+7. [GitHub Issues & Backlog Roadmap](#github-issues--backlog-roadmap)
+8. [Design System & Team Conventions](#design-system--team-conventions)
 
 ---
 
-## 📖 Overview ng Proyekto
+## Project Overview
 
-Ang **KusinApp** ay isang cross-platform system (Web + Android Mobile) na naglalayong tulungan ang mga pamilyang Pilipino, solo meal preppers, at health-conscious cooks na:
-- **Mag-plano ng pagkain** batay sa kanilang kalusugan (BMI, BMR gamit ang Mifflin-St Jeor formula, comorbidities tulad ng hypertension/diabetes) at budget.
-- **Mamahala ng pantry inventory** upang maiwasan ang panis at pagkaaksaya ng pagkain.
-- **Awtomatikong bumuo ng grocery list** na may pagtatantya ng presyo (palengke vs supermarket).
+**KusinApp** is a cross-platform system (React Web Companion + Native Android Studio Mobile Application) designed to assist Filipino households, solo meal preppers, and health-conscious home cooks to:
+- **Plan balanced meals** tailored to specific health profiles (BMI, BMR computed via the Mifflin-St Jeor formula, comorbidities including hypertension, diabetes, and hyperuricemia/gout) and household budgets.
+- **Manage pantry inventory** to reduce household food spoilage and eliminate redundant grocery purchases.
+- **Automate grocery lists** with local Philippine market price estimations (*palengke* vs. supermarket benchmarks).
 
 ---
 
-## 📂 Project Structure
+## Repository Structure
 
 ```text
 KusinApp/
@@ -34,57 +35,57 @@ KusinApp/
 │   │   ├── components/
 │   │   │   ├── auth/        # Login, Register, ForgotPassword (Unified User & Admin)
 │   │   │   ├── onboarding/  # 5-step Health & Cooking Skill Assessment
-│   │   │   ├── admin/       # Admin & Super Admin Split-screen Login & Profile
-│   │   │   └── common/      # Reusable Icons (SVG), PasswordInput, Modals, etc.
+│   │   │   ├── admin/       # Split-screen Admin & Super Admin Login & Profile
+│   │   │   └── common/      # Reusable SVG Icons, PasswordInput, ConfirmationModal, etc.
 │   │   ├── services/        # authService, adminService, emailService, emailTemplates
 │   │   ├── config/          # Firebase Web SDK initialization
 │   │   ├── App.jsx          # Root routing, portal switching (?portal=admin)
 │   │   └── main.jsx
-│   ├── .env.example         # Environment template para sa Firebase at EmailJS/Resend
+│   ├── .env.example         # Environment template for Firebase & transactional email services
 │   └── package.json
 ├── mobile/                  # Native Android Studio Application (Kotlin/Java)
 │   ├── google-services.json # Android Firebase configuration
 │   └── GoogleService-Info.plist
 ├── backend/                 # Firebase Realtime Database schemas & Cloud Functions
 │   └── firebase-config.json
-└── README.md                # Dokumentasyon ng proyekto
+└── README.md                # Project documentation and team onboarding guide
 ```
 
 ---
 
-## 💻 Prerequisites
+## Prerequisites
 
-Bago simulan ang pag-setup sa inyong computer, tiyaking naka-install ang mga sumusunod:
-1. **[Node.js](https://nodejs.org/)** (v18.x o mas bago — inirerekomenda ang v20 LTS).
-2. **Git** (naka-install at naka-configure sa inyong terminal).
-3. **Web Browser** (Google Chrome, Brave, o Edge).
-4. *(Opsyonal para sa mobile developers)*: **Android Studio Hedgehog / Iguana**.
+Before setting up the project locally, ensure the following software is installed on your computer:
+1. **[Node.js](https://nodejs.org/)** (v18.x or later — v20 LTS recommended).
+2. **Git** (installed and configured in your shell).
+3. **Web Browser** (Google Chrome, Brave, Microsoft Edge, or Firefox).
+4. *(For Mobile Developers)*: **Android Studio** (Hedgehog / Iguana or later with Android SDK 34+).
 
 ---
 
-## 🚀 Step-by-Step Setup Guide para sa mga Ka-Group
+## Step-by-Step Setup Guide
 
-Sundin lamang ang 5 simpleng steps na ito para mapagana ang project locally:
+Follow these steps to run the web application locally:
 
-### Step 1: I-clone ang Repository
-Buksan ang terminal o command prompt:
+### 1. Clone the Repository
+Open your terminal and clone the repository:
 ```bash
 git clone https://github.com/sho-tiii/KusinApp.git
 cd KusinApp/web
 ```
 
-### Step 2: I-install ang Dependencies
-I-install ang lahat ng kailangang React at Firebase packages:
+### 2. Install Dependencies
+Install all required Node and Firebase packages:
 ```bash
 npm install
 ```
 
-### Step 3: Gumawa ng `.env` File
-Kopyahin ang `.env.example` para maging `.env`:
+### 3. Create Local Environment Configuration
+Copy `.env.example` to create your local `.env` file:
 ```bash
 cp .env.example .env
 ```
-Buksan ang bagong `.env` file sa VS Code o notepad at ilagay ang inyong Firebase Web API Key:
+Open `.env` in your code editor and verify the Firebase Web API configuration:
 ```env
 VITE_FIREBASE_API_KEY=your_actual_firebase_api_key_here
 VITE_FIREBASE_AUTH_DOMAIN=kusinapp-accd6.firebaseapp.com
@@ -96,106 +97,144 @@ VITE_FIREBASE_MEASUREMENT_ID=G-9L0V6VF5FY
 VITE_FIREBASE_DATABASE_URL=https://kusinapp-accd6-default-rtdb.firebaseio.com
 ```
 
-*(Opsyonal: Kung gusto ninyong mag-send ng totoong email sa inyong Gmail, maglagay ng libreng EmailJS o Resend API key gaya ng nakasaad sa `.env.example`).*
+*(Optional: To dispatch real emails to your Gmail inbox, fill in either your free EmailJS or Resend API key as described in `.env.example`).*
 
-### Step 4: Patakbuhin ang Development Server
+### 4. Start the Local Development Server
 ```bash
 npm run dev
 ```
 
-### Step 5: Buksan sa Browser
-Pumunta sa:
-- **Companion Web Viewer (User Portal):** `http://localhost:5173/`
-- **Admin / Super Admin Portal:** `http://localhost:5173/?portal=admin`
+### 5. Open in Your Browser
+- **User Companion Web App:** [http://localhost:5173/](http://localhost:5173/)
+- **Admin & Super Admin Portal:** [http://localhost:5173/?portal=admin](http://localhost:5173/?portal=admin)
 
 ---
 
-## 🧪 Paano I-test ang mga Features
+## Feature Verification & Testing Guide
 
 ### 1. User Authentication & Onboarding
-- **Sign Up:** Subukang mag-register gamit ang email at password. Pansinin ang real-time **Password Requirements** at **Password Strength Meter**.
-- **Google Sign-In:** I-click ang *"Continue with Google"* para sa instant 1-click passwordless login.
-- **Onboarding Assessment (US-03):** Sagutan ang 5 steps (Persona & Household, Demographics, Dietary Goal, Cooking Skill, Health Conditions). Awtomatikong kukuwentahin ang iyong BMI category at BMR (kcal/day).
+- **Sign Up:** Register a new account with email and password. Verify the real-time **Password Requirements** checklist and **Password Strength Meter**.
+- **Google Sign-In:** Click *"Continue with Google"* for seamless 1-click passwordless login.
+- **Onboarding Assessment (US-03):** Complete the 5-step health assessment (Persona & Household, Demographics, Dietary Goal, Cooking Skill, Health Conditions). Verify that your BMI category and daily BMR (kcal/day) are calculated and synced to Firebase Realtime Database.
+- **Profile Retake:** From the profile dashboard, test the *"Retake Onboarding Assessment"* workflow to ensure confirmation dialogs prompt correctly.
 
-### 2. Forgot Password / OTP Flow
-1. Sa login form, i-click ang **"Forgot Password?"**.
-2. Ilagay ang iyong registered email address at i-click ang *"Send Verification Code"*.
-3. **Paano makuha ang OTP Code habang nagde-develop?**
-   - Buksan ang browser **DevTools (F12)** &rarr; **Console tab**. Naka-print doon ang generated 6-digit OTP code.
-   - **Dev Master Code:** Pwede ring i-type ang code na **`123456`** para makapag-proceed agad nang mabilis.
-4. Maglagay ng bagong password at subukang mag-login ulit gamit ang bagong password.
+### 2. Password Recovery (OTP Flow)
+1. On the login screen, click **"Forgot Password?"**.
+2. Enter your registered email address and submit.
+3. **Retrieving the OTP in Development:**
+   - Open your browser **DevTools (F12)** &rarr; **Console tab** to view the generated 6-digit OTP code preview.
+   - Alternatively, enter the development master code **`123456`** to proceed immediately.
+4. Enter your new password, submit, and confirm that login works with the updated credentials.
 
 ### 3. Admin & Super Admin Portal
-- I-click ang **"Admin Portal ↗"** sa kanang itaas ng navbar (o buksan ang `http://localhost:5173/?portal=admin`).
-- May split-screen layout na nagpapakita ng administrative branding.
-- May built-in role guard: kung user account ang gagamitin, haharangin ito at sasabihing administrative privilege ang kailangan.
-- Sa loob ng Admin Profile, maaaring mag-edit ng name, email, at magpalit ng password gamit ang secure confirmation dialog.
+- Navigate to the portal via the **"Admin Portal ↗"** button in the navbar or via `?portal=admin`.
+- Test role-based protection: regular user accounts will be rejected by the administrative role guard.
+- Log in with administrative credentials to access the Admin Profile, edit display details, and change administrative passwords securely.
+- Confirm that administrative logout completes cleanly and redirects to the login screen.
 
 ---
 
-## 📋 Sprint Status & Remaining Backlogs
+## Delivered Milestones (Sprint 1)
 
-### ✅ Sprint 1: Foundation, Authentication, & Onboarding (TAPOS NA)
-- [x] **US-01:** User Registration (Email/Password & Google OAuth).
-- [x] **US-02:** User Login, Session Persistence, at Logout na may Confirmation Modal.
-- [x] **US-03:** Health, Skill, & Persona Onboarding Assessment (Mifflin-St Jeor formula, BMI, BMR, Household size, Comorbidities).
-- [x] **US-14:** Split-screen Admin Authentication with Role-Based Guard.
-- [x] **US-19:** Admin Profile Viewing and Editing.
-- [x] **US-22:** Super Admin Unified Authentication.
-- [x] **US-27:** Super Admin Profile & Password Security Management.
-- [x] **Password Security:** Password strength meter at requirement validator.
-- [x] **Password Recovery:** 4-step OTP email-based Forgot Password flow (unified sa User at Admin).
-- [x] **Email Dispatcher:** Branded Welcome at OTP email notification templates via EmailJS / Resend.
+All Sprint 1 deliverables are completed and committed to `dev`:
 
----
-
-### ⏳ Remaining Backlogs para sa mga Susunod na Sprints
-
-#### 🥑 Sprint 2: Pantry & Inventory Management (Target: Mobile & Web)
-* **US-04 (Pantry Item Entry):** Pagdadagdag ng sangkap sa pantry (Pangalan, dami/quantity, unit, expiration date, kategorya: gulay, karne, rekado, de-lata).
-* **US-05 (Inventory Dashboard & Tracking):** Real-time monitoring ng natitirang stock sa bahay na may sorting ayon sa expiration date.
-* **US-06 (Expiration & Low-Stock Alerts):** Visual warnings para sa mga sangkap na malapit nang mapanis (anti-spoilage indicator).
-* **US-07 (Barcode / Quick Add - Mobile):** Mabilisang pag-scan o pag-input ng regular na binibiling sangkap.
-
-#### 🍲 Sprint 3: Filipino Recipe Discovery & Smart Meal Planning
-* **US-08 (Recipe Catalog):** Database ng mga pagkaing Pinoy (Sinigang, Adobo, Tinola, Pinakbet, etc.) na may nutritional breakdown (calories, sodium, carbs) at cooking time.
-* **US-09 (Health-Tailored Meal Recommender):** Algoritmong nagmumungkahi ng ulam batay sa BMR at health conditions mula sa onboarding (hal. low-sodium para sa may hypertension; low-glycemic para sa may diabetes).
-* **US-10 ("Anong Ulam Gamit ang Pantry?"):** Matchmaker engine na nagpapakita kung anong pwedeng lutuin gamit lamang ang mga sangkap na nasa pantry na ng user.
-
-#### 🛒 Sprint 4: Automated Budget & Grocery List
-* **US-11 (Smart Grocery Generator):** Awtomatikong paggawa ng listahan ng bibilhin: *(Mga sangkap sa napiling meal plan) minus (mga sangkap na available na sa pantry)*.
-* **US-12 (Palengke vs. Supermarket Price Estimation):** Pagtatantya ng kabuuang gagastusin sa pamamalengke sa piso (PHP).
-* **US-13 (Budget Capping):** Pagtatakda ng lingguhang badyet at pagbibigay ng babala kung lampas na sa budget ang plano.
-
-#### 🛡️ Sprint 5: Admin & Super Admin Content Management System (CMS)
-* **US-15 & US-16 (Admin Recipe Management):** Pag-create, edit, at pag-verify ng bagong recipes at nutritional data.
-* **US-17 & US-18 (Market Price Updates):** Pamamahala ng masterlist ng standard ingredients at benchmark prices sa palengke.
-* **US-23 & US-24 (Super Admin Role Delegation):** Paglikha at pag-assign ng mga Admin accounts at pag-manage ng permissions.
-* **US-25 & US-26 (System Audit Logs & Analytics):** Pagsubaybay sa aktibidad ng mga admin at statistics ng active users.
-
-#### 📱 Sprint 6: Native Android Mobile Integration & Offline Cache
-* Pag-sync ng Kotlin/Java Android app sa Firebase Realtime Database.
-* Local SQLite / Room caching para sa offline viewing ng pantry at meal plans.
-* Android Push Notifications para sa expiration warnings bago matulog.
+| Item | Title | Description | Status |
+| :--- | :--- | :--- | :--- |
+| **US-01** | User Registration | Email/password registration and Google OAuth sign-in. | Completed |
+| **US-02** | User Login & Session | Secure authentication, persistent state, and modal-guarded logout. | Completed |
+| **US-03** | Health Onboarding | 5-step assessment calculating BMI, Mifflin-St Jeor BMR, and dietary goals. | Completed |
+| **US-14** | Admin Authentication | Split-screen portal login enforcing role-based guard against regular accounts. | Completed |
+| **US-19** | Admin Profile | Profile view, display name modification, and password updating. | Completed |
+| **US-22** | Super Admin Authentication | Unified elevated administrative login. | Completed |
+| **US-27** | Super Admin Security | Elevated administrative profile management and security controls. | Completed |
+| **Security** | Password Strength Meter | Visual indicator and validation requirements across all auth forms. | Completed |
+| **Recovery** | Unified Forgot Password | Cohesive 4-step OTP email recovery flow for both user and admin portals. | Completed |
+| **Templates**| Transactional Email System | Welcome notice and OTP email layouts with KusinApp branding. | Completed |
 
 ---
 
-## 🎨 Design System & Team Guidelines
+## GitHub Issues & Backlog Roadmap
 
-Para manatiling cohesive at professional ang buong proyekto, sundin ang mga alituntuning ito:
+Below are the prioritized backlog items ready to be tracked as GitHub Issues:
 
-1. **Walang Emojis sa UI:** Huwag gumamit ng mga generic emoji characters sa UI. Gamitin ang malinis na custom SVG icons mula sa [`src/components/common/Icons.jsx`](web/src/components/common/Icons.jsx).
+### 🔴 Immediate Priorities
+
+#### Issue #1: Native Android Mobile Application Development (`/mobile`)
+- **Type:** `feature` / `mobile`
+- **Milestone:** Mobile Sprint 1
+- **Description:** Initialize and configure the native Android Studio project (Kotlin/Java) under `/mobile`. Connect with Firebase using `google-services.json`, set up authentication screens matching the KusinApp design system, and implement Realtime Database synchronization for user profile and onboarding states.
+- **Acceptance Criteria:**
+  - Android Studio project compiles cleanly with minimum SDK 26 (Android 8.0+) and target SDK 34+.
+  - Users can register, log in, and view their onboarding profile on Android devices.
+  - User data syncs seamlessly with Firebase Realtime Database matching the web companion.
+
+#### Issue #2: Production Transactional Email Service & Template Formatting
+- **Type:** `enhancement` / `infrastructure`
+- **Milestone:** Sprint 2
+- **Description:** Finalize the transactional email infrastructure for sending OTP recovery codes and registration welcome notices. Improve email template responsiveness, replace placeholder sender domains with verified custom sender identities, and ensure reliable delivery to external mailboxes (Gmail, Yahoo, Outlook) via Resend or EmailJS.
+- **Acceptance Criteria:**
+  - OTP and Welcome emails render cleanly across mobile and desktop email clients.
+  - 6-digit OTP delivery completes within seconds without manual console inspection.
+  - Sender display name displays as `KusinApp` with custom logo avatar branding.
+
+---
+
+### ⏳ Future Sprint Backlogs
+
+#### Sprint 2: Pantry & Inventory Management
+* **Issue #3 (US-04): Pantry Item Entry & Categorization**
+  - Add ingredients with name, quantity, measurement unit, category (vegetables, meat, spices, canned goods), and expiration date.
+* **Issue #4 (US-05): Pantry Inventory Dashboard**
+  - Searchable, filterable real-time inventory view sorted by expiration priority.
+* **Issue #5 (US-06): Expiration & Low-Stock Alerts**
+  - Visual warning badges for items expiring within 3 days to prevent food waste.
+* **Issue #6 (US-07): Quick Add & Barcode Scanner (Mobile)**
+  - Fast barcode lookup and frequently-used ingredient quick-add chips for Android.
+
+#### Sprint 3: Filipino Recipe Discovery & Smart Meal Planning
+* **Issue #7 (US-08): Filipino Recipe Repository**
+  - Database of classic Filipino recipes (Sinigang, Adobo, Tinola, Pinakbet) with step-by-step instructions and nutritional facts.
+* **Issue #8 (US-09): Health-Tailored Meal Recommendation Algorithm**
+  - Matchmaker engine recommending dishes that adhere to user BMR targets and comorbidity constraints (low sodium for hypertension, low glycemic index for diabetes).
+* **Issue #9 (US-10): "What Can I Cook?" Pantry Matchmaker**
+  - Filter recipes based on ingredients currently in stock in the user's pantry.
+
+#### Sprint 4: Automated Budget & Grocery List
+* **Issue #10 (US-11): Automated Grocery List Generation**
+  - Auto-generate shopping lists from weekly meal plans minus in-stock pantry items.
+* **Issue #11 (US-12): Philippine Market Price Estimator**
+  - Approximate total recipe and grocery costs based on local *palengke* vs. supermarket benchmarks (in PHP).
+* **Issue #12 (US-13): Household Budget Capping**
+  - Set weekly grocery budget limits with warning notifications when planned meals exceed limits.
+
+#### Sprint 5: Administrative Content Management System (CMS)
+* **Issue #13 (US-15 & US-16): Admin Recipe Management Portal**
+  - Administrative CRUD interfaces to create, edit, verify, and publish community recipes.
+* **Issue #14 (US-17 & US-18): Ingredient & Benchmark Price Masterlist**
+  - Manage standard ingredient catalog and update regional price index data.
+* **Issue #15 (US-23 & US-24): Super Admin Role Delegation**
+  - Super Admin interface to invite, assign, and revoke Admin accounts and permissions.
+* **Issue #16 (US-25 & US-26): System Audit Logs & Usage Analytics**
+  - Track administrative actions, user registrations, and platform metrics.
+
+---
+
+## Design System & Team Conventions
+
+To preserve visual consistency across all portals and applications:
+
+1. **SVG Iconography (No Raw Emojis):** Do not render native emoji characters in user interfaces. Always import accessible SVG icons from [`src/components/common/Icons.jsx`](web/src/components/common/Icons.jsx).
 2. **Color Palette:**
-   - **Primary Amber / Gold:** `#f59e0b` / `#d97706` (main brand color, CTAs)
-   - **Chili Accent / Red:** `#d92d20` (destructive actions, alerts, highlights)
-   - **Warm Cream Background:** `#f7f4ee` (body background, light mode)
-   - **Card Surface:** `#ffffff` (card backgrounds, inputs)
-   - **Slate Text:** `#1e293b` (primary text) at `#64748b` (subtitles/placeholders)
+   - **Primary Amber / Gold:** `#f59e0b` / `#d97706` (Primary brand color, buttons, active states)
+   - **Chili Red Accent:** `#d92d20` (Alerts, destructive confirmations, highlight badges)
+   - **Warm Cream Background:** `#f7f4ee` (Page background)
+   - **Card Surface:** `#ffffff` (Card containers, modal surfaces, form inputs)
+   - **Slate Text:** `#1e293b` (Headings, primary body) and `#64748b` (Muted labels, placeholders)
 3. **Git Workflow:**
-   - Mag-branch palagi mula sa `dev` bago gumawa ng bagong feature (hal. `feature/pantry-crud`).
-   - Huwag mag-commit ng `.env` files na may sensitibong private keys.
-   - Sumulat ng malinaw at descriptive na commit messages.
+   - Create feature branches off `dev` (e.g., `feature/pantry-crud` or `feature/mobile-auth`).
+   - Do not commit `.env` files containing private production secrets.
+   - Use clear conventional commit prefixes: `feat:`, `fix:`, `style:`, `refactor:`, `docs:`.
 
 ---
 
-*Para sa mga katanungan o tulong sa setup, mag-message sa group chat o tingnan ang code comments sa loob ng `web/src/`.*
+*For setup questions or assistance, reach out via the team channel or consult inline code documentation in `web/src/`.*
