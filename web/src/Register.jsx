@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { registerUser } from "./authService";
 import PasswordInput from "./PasswordInput";
-import { IconUserPlus } from "./Icons";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * US-01: User Registration Screen (Register.jsx)
- * Clean, production-grade form using official SVG icons and validation feedback.
+ * Clean, production-grade form using the official KusinApp emblem.
  */
 export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   const [displayName, setDisplayName] = useState("");
@@ -58,9 +57,11 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   return (
     <div>
       <div className="k-card-head">
-        <div className="k-card-icon" aria-hidden="true">
-          <IconUserPlus size={24} />
-        </div>
+        <img
+          src="/assets/kusinapp-logo-stacked.png"
+          alt="KusinApp emblem"
+          className="k-card-brand-emblem"
+        />
         <h1 className="k-title">Create an Account</h1>
         <p className="k-subtitle">Plan balanced, affordable Filipino meals and manage your pantry.</p>
       </div>

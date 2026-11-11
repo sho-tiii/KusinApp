@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { loginUser } from "./authService";
 import PasswordInput from "./PasswordInput";
-import { IconLock } from "./Icons";
 
 /**
  * US-02: User Authentication Screen (Login.jsx)
  * Clean, production-grade form matching the official prototype.
- * Uses official SVG icons and responsive mobile-first tokens.
+ * Displays the official KusinApp emblem atop the card.
  */
 export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [email, setEmail] = useState("");
@@ -41,9 +40,11 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   return (
     <div>
       <div className="k-card-head">
-        <div className="k-card-icon" aria-hidden="true">
-          <IconLock size={24} />
-        </div>
+        <img
+          src="/assets/kusinapp-logo-stacked.png"
+          alt="KusinApp emblem"
+          className="k-card-brand-emblem"
+        />
         <h1 className="k-title">Welcome Back</h1>
         <p className="k-subtitle">Log in to save your favorite recipes and continue them in KusinApp.</p>
       </div>
