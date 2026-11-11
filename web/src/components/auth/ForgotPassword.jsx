@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import PasswordInput from "../common/PasswordInput";
 import PasswordStrengthMeter, { evaluatePasswordStrength } from "../common/PasswordStrengthMeter";
-import { requestPasswordResetOtp, verifyPasswordResetOtp, completePasswordReset } from "../../services/authService";
+import {
+  requestPasswordResetOtp,
+  verifyPasswordResetOtp,
+  completePasswordReset,
+} from "../../services/authService";
 
 /**
- * Unified 4-Step Forgot Password Wizard (Shared between User and Admin)
+ * Unified 4-Step Forgot Password Wizard styled with Tailwind CSS (Shared between User and Admin)
  * 1. Request (Email input -> Send OTP)
  * 2. Verify (6-digit OTP inputs + live 30s countdown resend timer)
  * 3. Password (New password + live strength meter + confirmation)
@@ -150,7 +154,9 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
     const strength = evaluatePasswordStrength(newPassword);
     if (!strength.isValid) {
-      setErrorMsg("Please ensure your password satisfies at least 3 strength criteria (minimum 8 characters).");
+      setErrorMsg(
+        "Please ensure your password satisfies at least 3 strength criteria (minimum 8 characters)."
+      );
       return;
     }
 
@@ -173,30 +179,50 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
   const formattedTimer = `00:${resendTimer.toString().padStart(2, "0")}`;
 
+  const steps = [
+    { id: 1, label: "1. Request" },
+    { id: 2, label: "2. Verify" },
+    { id: 3, label: "3. Password" },
+    { id: 4, label: "4. Done" },
+  ];
+
   return (
-    <div className="k-auth-flow">
+    <div className="w-full">
       {/* 4-Step Pill Stepper */}
-      <div className="k-pill-stepper" role="navigation" aria-label="Password Reset Progress">
-        <div className={`k-pill-step ${step === 1 ? "k-pill-step--active" : ""}`}>
-          1. Request
-        </div>
-        <div className={`k-pill-step ${step === 2 ? "k-pill-step--active" : ""}`}>
-          2. Verify
-        </div>
-        <div className={`k-pill-step ${step === 3 ? "k-pill-step--active" : ""}`}>
-          3. Password
-        </div>
-        <div className={`k-pill-step ${step === 4 ? "k-pill-step--active" : ""}`}>
-          4. Done
-        </div>
+      <div
+        className="flex bg-slate-100 rounded-xl p-1 mb-6 gap-1"
+        role="navigation"
+        aria-label="Password Reset Progress"
+      >
+        {steps.map((s) => (
+          <div
+            key={s.id}
+            className={`flex-1 text-center py-2 px-1.5 rounded-lg text-xs transition-all duration-200 ${
+              step === s.id
+                ? "bg-white text-amber-700 font-bold shadow-sm"
+                : "text-slate-400 font-semibold"
+            }`}
+          >
+            {s.label}
+          </div>
+        ))}
       </div>
 
       {/* STEP 1: REQUEST */}
       {step === 1 && (
         <div>
-          <div className="k-card-head">
-            <div className="k-avatar-emblem">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-700 grid place-items-center mx-auto mb-4">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />
                 <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
@@ -204,23 +230,36 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
                 <rect x="10" y="9" width="4" height="6" rx="1" />
               </svg>
             </div>
-            <h1 className="k-title">Forgot Your Password?</h1>
-            <p className="k-subtitle">
-              Enter the email address linked to your KusinApp account and we&apos;ll send you a verification code.
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Forgot Your Password?
+            </h1>
+            <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+              Enter the email address linked to your KusinApp account and we&apos;ll send you a
+              verification code.
             </p>
           </div>
 
-          {errorMsg && <div role="alert" className="k-alert k-alert--error">{errorMsg}</div>}
+          {errorMsg && (
+            <div
+              role="alert"
+              className="px-3.5 py-3 mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm leading-relaxed"
+            >
+              {errorMsg}
+            </div>
+          )}
 
-          <form onSubmit={handleRequestOtp} noValidate className="k-form">
-            <div className="k-field">
-              <label htmlFor="reset-email" className="k-label">
+          <form onSubmit={handleRequestOtp} noValidate className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="reset-email"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
                 Email Address
               </label>
               <input
                 id="reset-email"
                 type="email"
-                className="k-input"
+                className="w-full h-11 px-3.5 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
                 placeholder={isAdminPortal ? "admin@kusinapp.ph" : "juan@email.com"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -231,18 +270,23 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
             <button
               type="submit"
-              className="k-btn k-btn--primary k-btn--block"
+              className="w-full h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-amber-ring"
               disabled={isLoading}
             >
-              {isLoading && <span className="k-spinner" aria-hidden="true" />}
+              {isLoading && (
+                <span
+                  className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+              )}
               {isLoading ? "Sending verification..." : "Send OTP →"}
             </button>
           </form>
 
-          <p className="k-divider">
+          <p className="flex items-center justify-center mt-5 text-sm text-slate-600">
             <button
               type="button"
-              className="k-link"
+              className="border-0 bg-transparent p-0 font-semibold text-amber-700 hover:underline cursor-pointer"
               onClick={onBackToLogin}
             >
               {isAdminPortal ? "← Back to Administrative Sign In" : "← Back to Log In"}
@@ -254,32 +298,53 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
       {/* STEP 2: VERIFY CODE */}
       {step === 2 && (
         <div>
-          <div className="k-card-head">
-            <div className="k-avatar-emblem">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-700 grid place-items-center mx-auto mb-4">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                 <polyline points="22,6 12,13 2,6" />
               </svg>
             </div>
-            <h1 className="k-title">Verify Your Email</h1>
-            <p className="k-subtitle">
-              We sent a 6-digit verification code to:<br />
-              <strong style={{ color: "var(--k-ink)" }}>{email}</strong>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Verify Your Email
+            </h1>
+            <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+              We sent a 6-digit verification code to:
+              <br />
+              <strong className="text-slate-900 font-bold">{email}</strong>
             </p>
           </div>
 
-          {errorMsg && <div role="alert" className="k-alert k-alert--error">{errorMsg}</div>}
+          {errorMsg && (
+            <div
+              role="alert"
+              className="px-3.5 py-3 mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm leading-relaxed"
+            >
+              {errorMsg}
+            </div>
+          )}
 
-          <form onSubmit={handleVerifyOtp} noValidate className="k-form">
-            <div className="k-otp-group">
+          <form onSubmit={handleVerifyOtp} noValidate className="flex flex-col gap-4">
+            <div className="flex justify-center gap-2 my-3">
               {otpDigits.map((digit, idx) => (
                 <input
                   key={idx}
-                  ref={(el) => (otpInputRefs.current[idx] = el)}
+                  ref={(el) => {
+                    otpInputRefs.current[idx] = el;
+                  }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
-                  className="k-otp-input"
+                  className="w-11 sm:w-12 h-13 sm:h-14 text-center text-xl font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:border-amber-500 focus:shadow-amber-ring transition-all"
                   value={digit}
                   onChange={(e) => handleOtpChange(idx, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(idx, e)}
@@ -291,25 +356,24 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
             <button
               type="submit"
-              className="k-btn k-btn--primary k-btn--block"
+              className="w-full h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-amber-ring"
               disabled={isLoading}
             >
               Verify Code →
             </button>
           </form>
 
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <p style={{ margin: "0 0 10px", fontSize: "0.88rem", color: "var(--k-muted)" }}>
+          <div className="text-center mt-5">
+            <p className="mb-2.5 text-sm text-slate-600">
               Didn&apos;t receive the code?{" "}
               {resendTimer > 0 ? (
                 <span>
-                  Resend code in <strong>{formattedTimer}</strong>
+                  Resend code in <strong className="text-slate-900">{formattedTimer}</strong>
                 </span>
               ) : (
                 <button
                   type="button"
-                  className="k-link"
-                  style={{ fontWeight: 700 }}
+                  className="border-0 bg-transparent p-0 font-bold text-amber-700 hover:underline cursor-pointer"
                   onClick={handleResendOtp}
                   disabled={isLoading}
                 >
@@ -320,8 +384,7 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
             <button
               type="button"
-              className="k-link"
-              style={{ fontSize: "0.85rem", color: "var(--k-subtle)" }}
+              className="border-0 bg-transparent p-0 text-xs font-semibold text-slate-400 hover:text-slate-700 hover:underline cursor-pointer"
               onClick={() => {
                 setStep(1);
                 setErrorMsg("");
@@ -336,27 +399,49 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
       {/* STEP 3: CREATE NEW PASSWORD */}
       {step === 3 && (
         <div>
-          <div className="k-card-head">
-            <div className="k-avatar-emblem">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-700 grid place-items-center mx-auto mb-4">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5-3 3L11 12l-5 5H2v4h4l5-5 1.5 1.5 3-3-1.5-1.5 3.5-3.5" />
                 <circle cx="17.5" cy="6.5" r="2.5" />
               </svg>
             </div>
-            <h1 className="k-title">Create New Password</h1>
-            <p className="k-subtitle">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Create New Password
+            </h1>
+            <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
               {isAdminPortal
                 ? "Choose a new password for your administrative account."
                 : "Choose a new password for your KusinApp account."}
             </p>
           </div>
 
-          {errorMsg && <div role="alert" className="k-alert k-alert--error">{errorMsg}</div>}
+          {errorMsg && (
+            <div
+              role="alert"
+              className="px-3.5 py-3 mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm leading-relaxed"
+            >
+              {errorMsg}
+            </div>
+          )}
 
-          <form onSubmit={handleResetPassword} noValidate className="k-form">
-            <div className="k-field">
-              <label htmlFor="new-pwd" className="k-label">
+          <form onSubmit={handleResetPassword} noValidate className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="new-pwd"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
                 New Password
+                <span className="text-xs font-medium text-slate-500">min. 8 characters</span>
               </label>
               <PasswordInput
                 id="new-pwd"
@@ -366,12 +451,14 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
                 disabled={isLoading}
                 autoComplete="new-password"
               />
-              <span className="k-hint">Use at least 8 characters.</span>
               <PasswordStrengthMeter password={newPassword} />
             </div>
 
-            <div className="k-field">
-              <label htmlFor="confirm-new-pwd" className="k-label">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="confirm-new-pwd"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
                 Confirm New Password
               </label>
               <PasswordInput
@@ -386,10 +473,15 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
             <button
               type="submit"
-              className="k-btn k-btn--primary k-btn--block"
+              className="w-full h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-amber-ring"
               disabled={isLoading}
             >
-              {isLoading && <span className="k-spinner" aria-hidden="true" />}
+              {isLoading && (
+                <span
+                  className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+              )}
               {isLoading ? "Updating password..." : "Reset Password →"}
             </button>
           </form>
@@ -399,28 +491,40 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
       {/* STEP 4: SUCCESS / DONE */}
       {step === 4 && (
         <div>
-          <div className="k-card-head">
-            <div className="k-avatar-emblem" style={{ background: "#d1fadf", color: "#039855" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center mx-auto mb-4">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h1 className="k-title">Password Reset Successful</h1>
-            <p className="k-subtitle">
-              Your password has been updated successfully. You can now log in using your new password.
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Password Reset Successful
+            </h1>
+            <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+              Your password has been updated successfully. You can now log in using your new
+              password.
             </p>
           </div>
 
-          <div className="k-alert k-alert--info" style={{ marginTop: "16px", marginBottom: "24px" }}>
-            <strong>Ready to cook</strong>
-            <div style={{ marginTop: "2px", fontSize: "0.85rem" }}>
+          <div className="px-4 py-3.5 my-5 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-sm">
+            <strong className="font-bold block">Ready to cook</strong>
+            <p className="mt-0.5 text-xs text-amber-800">
               Your saved recipes and regional notes are fully synced.
-            </div>
+            </p>
           </div>
 
           <button
             type="button"
-            className="k-btn k-btn--primary k-btn--block"
+            className="w-full h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all focus-visible:outline-none focus-visible:shadow-amber-ring"
             onClick={onBackToLogin}
           >
             {isAdminPortal ? "Back to Administrative Sign In →" : "Back to Log In →"}

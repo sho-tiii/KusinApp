@@ -1,9 +1,8 @@
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
   sendPasswordResetEmail,
-  sendEmailVerification,
   updateProfile,
   setPersistence,
   browserLocalPersistence,
@@ -16,7 +15,7 @@ import { auth, db } from "../config/firebase";
 import { sendWelcomeEmail, sendOtpEmail } from "./emailService";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
 
 /**
  * Maps Firebase Auth error codes to user-friendly descriptive messages.
@@ -165,13 +164,13 @@ export async function saveUserOnboarding(uid, onboardingData) {
   const weight = parseFloat(onboardingData.weightKg);
 
   if (!age || age < 10 || age > 120) {
-    throw new Error("Please enter a valid age (10 to 120).");
+    throw new Error("Please enter a valid age between 10 and 120.");
   }
-  if (!height || height <= 50 || height > 260) {
-    throw new Error("Please provide a valid height in cm (e.g., 165).");
+  if (!height || height < 50 || height > 250) {
+    throw new Error("Please enter a valid height between 50 and 250 cm.");
   }
-  if (!weight || weight <= 20 || weight > 350) {
-    throw new Error("Please provide a valid weight in kg (e.g., 60).");
+  if (!weight || weight < 20 || weight > 300) {
+    throw new Error("Please enter a valid weight between 20 and 300 kg.");
   }
   if (!onboardingData.weightGoal) {
     throw new Error("Please select your weight goal (Maintain, Lose, or Gain).");
@@ -423,8 +422,8 @@ export function verifyPasswordResetOtp(email, enteredCode) {
  * Completes password reset and clears the OTP session.
  */
 export async function completePasswordReset(email, newPassword) {
-  if (!newPassword || newPassword.length < 8) {
-    throw new Error("Password must be at least 8 characters long.");
+  if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
   }
 
   if (typeof window !== "undefined" && window.sessionStorage) {
@@ -433,5 +432,3 @@ export async function completePasswordReset(email, newPassword) {
 
   return { success: true };
 }
-
-

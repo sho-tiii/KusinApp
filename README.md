@@ -30,7 +30,7 @@
 
 ```text
 KusinApp/
-├── web/                     # React 18 + Vite Web Application
+├── web/                     # React + Vite + Tailwind CSS Web Application
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── auth/        # Login, Register, ForgotPassword (Unified User & Admin)
@@ -41,6 +41,8 @@ KusinApp/
 │   │   ├── config/          # Firebase Web SDK initialization
 │   │   ├── App.jsx          # Root routing, portal switching (?portal=admin)
 │   │   └── main.jsx
+│   ├── tailwind.config.js   # Tailwind CSS theme configuration
+│   ├── postcss.config.js    # PostCSS & Autoprefixer configuration
 │   ├── .env.example         # Environment template for Firebase & transactional email services
 │   └── package.json
 ├── mobile/                  # Native Android Studio Application (Kotlin/Java)
@@ -75,7 +77,7 @@ cd KusinApp/web
 ```
 
 ### 2. Install Dependencies
-Install all required Node and Firebase packages:
+Install all required React, Tailwind CSS, and Firebase packages:
 ```bash
 npm install
 ```
@@ -94,7 +96,7 @@ VITE_FIREBASE_STORAGE_BUCKET=kusinapp-accd6.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=923819958215
 VITE_FIREBASE_APP_ID=1:923819958215:web:32683482ae758d3490c3e2
 VITE_FIREBASE_MEASUREMENT_ID=G-9L0V6VF5FY
-VITE_FIREBASE_DATABASE_URL=https://kusinapp-accd6-default-rtdb.firebaseio.com
+VITE_FIREBASE_DATABASE_URL=https://kusinapp-accd6-default-rtdb.asia-southeast1.firebasedatabase.app
 ```
 
 *(Optional: To dispatch real emails to your Gmail inbox, fill in either your free EmailJS or Resend API key as described in `.env.example`).*

@@ -2,7 +2,7 @@ import React from "react";
 
 /**
  * Calculates password strength and checks individual requirements.
- * Returns score (0-4), strength label, color token, and boolean flags.
+ * Returns score (0-4), strength label, Tailwind classes, and boolean flags.
  */
 export function evaluatePasswordStrength(password = "") {
   const pwd = typeof password === "string" ? password : "";
@@ -22,7 +22,8 @@ export function evaluatePasswordStrength(password = "") {
   if (checks.hasSpecial) passedCount++;
 
   let label = "Very Weak";
-  let color = "#d92d20"; // Red
+  let textColorClass = "text-red-600";
+  let barColorClass = "bg-red-600";
   let score = 0;
 
   if (pwd.length === 0) {
@@ -30,42 +31,44 @@ export function evaluatePasswordStrength(password = "") {
     score = 0;
   } else if (passedCount <= 1) {
     label = "Weak";
-    color = "#d92d20";
+    textColorClass = "text-red-600";
+    barColorClass = "bg-red-600";
     score = 1;
   } else if (passedCount === 2) {
     label = "Fair";
-    color = "#f59e0b"; // Amber
+    textColorClass = "text-amber-600";
+    barColorClass = "bg-amber-500";
     score = 2;
   } else if (passedCount === 3) {
     label = "Good";
-    color = "#0284c7"; // Blue
+    textColorClass = "text-sky-600";
+    barColorClass = "bg-sky-600";
     score = 3;
   } else {
     label = "Strong";
-    color = "#12b76a"; // Emerald green
+    textColorClass = "text-emerald-600";
+    barColorClass = "bg-emerald-500";
     score = 4;
   }
 
   return {
     score,
     label,
-    color,
+    textColorClass,
+    barColorClass,
     checks,
     isValid: pwd.length >= 8 && passedCount >= 3,
   };
 }
 
 /**
- * Reusable Password Strength Meter & Requirement Checklist
- * Designed cleanly matching KusinApp design tokens:
- * - 4-segment progress bar
- * - Live strength label
- * - Minimalist requirement items with SVG indicators (no emojis)
+ * Reusable Password Strength Meter & Requirement Checklist styled with Tailwind CSS.
  */
 export default function PasswordStrengthMeter({ password = "", showRequirements = true }) {
   if (!password) return null;
 
-  const { score, label, color, checks } = evaluatePasswordStrength(password);
+  const { score, label, textColorClass, barColorClass, checks } =
+    evaluatePasswordStrength(password);
 
   const requirementList = [
     { label: "At least 8 characters", met: checks.length },
@@ -75,35 +78,43 @@ export default function PasswordStrengthMeter({ password = "", showRequirements 
   ];
 
   return (
-    <div className="k-pw-strength" aria-live="polite">
+    <div
+      className="mt-2.5 p-3 bg-slate-50 border border-slate-200 rounded-lg"
+      aria-live="polite"
+    >
       {/* Strength indicator header */}
-      <div className="k-pw-strength-header">
-        <span className="k-pw-strength-title">Password strength:</span>
-        <span className="k-pw-strength-label" style={{ color }}>
-          {label}
-        </span>
+      <div className="flex justify-between items-center text-xs mb-1.5">
+        <span className="text-slate-600 font-medium">Password strength:</span>
+        <span className={`font-bold ${textColorClass}`}>{label}</span>
       </div>
 
       {/* 4-segment progress bar */}
-      <div className="k-pw-strength-bars" role="progressbar" aria-valuenow={score} aria-valuemin="0" aria-valuemax="4">
+      <div
+        className="flex gap-1 h-1.5 mb-2.5"
+        role="progressbar"
+        aria-valuenow={score}
+        aria-valuemin={0}
+        aria-valuemax={4}
+      >
         {[1, 2, 3, 4].map((step) => (
           <div
             key={step}
-            className="k-pw-strength-segment"
-            style={{
-              backgroundColor: step <= score ? color : "var(--k-border-subtle, #e5e7eb)",
-            }}
+            className={`flex-1 h-full rounded-sm transition-colors duration-200 ${
+              step <= score ? barColorClass : "bg-slate-200"
+            }`}
           />
         ))}
       </div>
 
       {/* Requirements checklist */}
       {showRequirements && (
-        <ul className="k-pw-req-list">
-          {requirementList.map((item, index) => (
+        <ul className="list-none p-0 m-0 flex flex-col gap-1">
+          {requirementList.map((item) => (
             <li
-              key={index}
-              className={`k-pw-req-item ${item.met ? "k-pw-req-item--met" : ""}`}
+              key={item.label}
+              className={`flex items-center gap-1.5 text-xs transition-colors duration-150 ${
+                item.met ? "text-emerald-600 font-semibold" : "text-slate-400"
+              }`}
             >
               <svg
                 width="14"
@@ -115,7 +126,7 @@ export default function PasswordStrengthMeter({ password = "", showRequirements 
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden="true"
-                style={{ flexShrink: 0 }}
+                className="shrink-0"
               >
                 {item.met ? (
                   <polyline points="20 6 9 17 4 12" />

@@ -1,8 +1,9 @@
-import { 
-  updatePassword, 
-  updateProfile, 
-  EmailAuthProvider, 
-  reauthenticateWithCredential 
+import {
+  updatePassword,
+  updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  signOut,
 } from "firebase/auth";
 import { ref, get, update, serverTimestamp } from "firebase/database";
 import { auth, db } from "../config/firebase";
@@ -12,6 +13,7 @@ import { loginUser } from "./authService";
  * US-14 & US-22: Unified Admin & Super Admin Login
  * Validates credentials and verifies that the account possesses
  * an administrative role ('admin' or 'super_admin').
+ * Automatically signs out unauthorized non-admin accounts to prevent session leaks.
  *
  * @param {string} email
  * @param {string} password
@@ -27,14 +29,16 @@ export async function loginAdmin(email, password, remember = true) {
   const snapshot = await get(userRef);
 
   if (!snapshot.exists()) {
+    await signOut(auth);
     throw new Error("No administrative account record found in database.");
   }
 
   const profile = snapshot.val();
   const role = profile.role || "user";
 
-  // 3. Restrict unauthorized users (US-14 & US-22 requirement)
+  // 3. Restrict unauthorized users (US-14 & US-22 requirement) and clear auth session
   if (role !== "admin" && role !== "super_admin") {
+    await signOut(auth);
     throw new Error(
       "Access Restricted: This portal is reserved for authorized Admin and Super Admin accounts only."
     );
@@ -87,8 +91,8 @@ export async function changeAdminPassword(currentPassword, newPassword) {
     throw new Error("No active administrator session found.");
   }
 
-  if (!newPassword || newPassword.length < 6) {
-    throw new Error("New password must be at least 6 characters long.");
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error("New password must be at least 8 characters long.");
   }
 
   try {

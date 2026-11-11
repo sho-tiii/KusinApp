@@ -97,6 +97,21 @@ const SKILLS = [
   },
 ];
 
+function getCategoryColorClass(category) {
+  switch (category) {
+    case "Normal":
+      return "text-emerald-700";
+    case "Overweight":
+      return "text-amber-700";
+    case "Obese":
+      return "text-red-700";
+    case "Underweight":
+      return "text-blue-700";
+    default:
+      return "text-slate-500";
+  }
+}
+
 export default function Onboarding({ user, initialData, onComplete, onCancel }) {
   const [step, setStep] = useState(1);
 
@@ -109,13 +124,18 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
   const [comorbidities, setComorbidities] = useState(initialData?.comorbidities || ["none"]);
 
   const [userPersona, setUserPersona] = useState(initialData?.userPersona || "solo_eater");
-  const [householdSize, setHouseholdSize] = useState(initialData?.householdSize?.toString() || "1");
+  const [householdSize, setHouseholdSize] = useState(
+    initialData?.householdSize?.toString() || "1"
+  );
   const [cookingSkill, setCookingSkill] = useState(initialData?.cookingSkill || "beginner");
 
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { bmi, category } = useMemo(() => calculateBMI(heightCm, weightKg), [heightCm, weightKg]);
+  const { bmi, category } = useMemo(
+    () => calculateBMI(heightCm, weightKg),
+    [heightCm, weightKg]
+  );
   const estimatedBMR = useMemo(
     () => (gender ? calculateBMR(weightKg, heightCm, age, gender) : 0),
     [weightKg, heightCm, age, gender]
@@ -195,59 +215,106 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
 
   return (
     <div>
-      <div className="k-card-head">
-        <span className="k-eyebrow">Personalized Profile Setup</span>
-        <h1 className="k-title">Set Up Your KusinApp Profile</h1>
-        <p className="k-subtitle">We use this to tailor your Filipino meal plans, calorie targets, and recipes.</p>
+      <div className="text-center mb-6">
+        <span className="inline-block text-xs font-bold tracking-widest uppercase text-amber-700 mb-1.5">
+          Personalized Profile Setup
+        </span>
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          Set Up Your KusinApp Profile
+        </h1>
+        <p className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+          We use this to tailor your Filipino meal plans, calorie targets, and recipes.
+        </p>
       </div>
 
-      <ol className="k-stepper" aria-label="Onboarding progress" style={{ listStyle: "none", padding: 0, margin: "0 0 24px" }}>
+      {/* 3-Step Progress Bar */}
+      <ol
+        className="grid grid-cols-3 gap-2 mb-6 list-none p-0"
+        aria-label="Onboarding progress"
+      >
         {STEPS.map((label, i) => {
           const n = i + 1;
-          const state = n < step ? "done" : n === step ? "current" : "upcoming";
+          const isDone = n < step;
+          const isCurrent = n === step;
           return (
-            <li key={label} className="k-step" data-state={state} aria-current={state === "current" ? "step" : undefined}>
-              <span className="k-step-bar" />
-              <span>{n}. {label}</span>
+            <li
+              key={label}
+              className={`flex flex-col gap-1.5 text-xs font-semibold ${
+                isCurrent
+                  ? "text-amber-700"
+                  : isDone
+                  ? "text-slate-900"
+                  : "text-slate-400"
+              }`}
+              aria-current={isCurrent ? "step" : undefined}
+            >
+              <div className="h-1 rounded-full bg-slate-200 overflow-hidden">
+                <div
+                  className={`h-full bg-amber-500 rounded-full transition-all duration-300 ${
+                    isDone || isCurrent ? "w-full" : "w-0"
+                  }`}
+                />
+              </div>
+              <span className="truncate">
+                {n}. {label}
+              </span>
             </li>
           );
         })}
       </ol>
 
       {errorMsg && (
-        <div role="alert" className="k-alert k-alert--error">
+        <div
+          role="alert"
+          className="px-3.5 py-3 mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm leading-relaxed"
+        >
           {errorMsg}
         </div>
       )}
 
-      {/* STEP 1 */}
+      {/* STEP 1: DEMOGRAPHICS & BODY METRICS */}
       {step === 1 && (
-        <div className="k-form">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="k-section-title">Demographics & Body Metrics</h2>
-            <p className="k-section-desc">Used to compute your baseline BMI and daily calorie requirements.</p>
+            <h2 className="text-base font-bold text-slate-900">Demographics & Body Metrics</h2>
+            <p className="mt-0.5 text-xs text-slate-600">
+              Used to compute your baseline BMI and daily calorie requirements.
+            </p>
           </div>
 
-          <div className="k-row">
-            <div className="k-field">
-              <label htmlFor="ob-age" className="k-label">Age</label>
-              <div className="k-input-wrap">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="ob-age"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
+                Age
+              </label>
+              <div className="relative flex items-center">
                 <input
                   id="ob-age"
                   type="number"
                   inputMode="numeric"
-                  className="k-input"
+                  className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all"
                   placeholder="22"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   min="10"
                   max="120"
                 />
-                <span className="k-input-suffix">yrs</span>
+                <span className="absolute right-3 text-xs font-semibold text-slate-500 pointer-events-none">
+                  yrs
+                </span>
               </div>
             </div>
-            <div className="k-field">
-              <span id="ob-sex-label" className="k-label">Biological Sex</span>
+
+            <div className="flex flex-col gap-1.5">
+              <span
+                id="ob-sex-label"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
+                Biological Sex
+              </span>
               <Select
                 id="ob-sex"
                 ariaLabelledBy="ob-sex-label"
@@ -259,119 +326,185 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
             </div>
           </div>
 
-          <div className="k-row">
-            <div className="k-field">
-              <label htmlFor="ob-height" className="k-label">Height</label>
-              <div className="k-input-wrap">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="ob-height"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
+                Height
+              </label>
+              <div className="relative flex items-center">
                 <input
                   id="ob-height"
                   type="number"
                   inputMode="decimal"
-                  className="k-input"
+                  className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all"
                   placeholder="165"
                   value={heightCm}
                   onChange={(e) => setHeightCm(e.target.value)}
                   min="50"
                   max="250"
                 />
-                <span className="k-input-suffix">cm</span>
+                <span className="absolute right-3 text-xs font-semibold text-slate-500 pointer-events-none">
+                  cm
+                </span>
               </div>
             </div>
-            <div className="k-field">
-              <label htmlFor="ob-weight" className="k-label">Weight</label>
-              <div className="k-input-wrap">
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="ob-weight"
+                className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+              >
+                Weight
+              </label>
+              <div className="relative flex items-center">
                 <input
                   id="ob-weight"
                   type="number"
                   inputMode="decimal"
-                  className="k-input"
+                  className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all"
                   placeholder="62"
                   value={weightKg}
                   onChange={(e) => setWeightKg(e.target.value)}
                   min="20"
                   max="300"
                 />
-                <span className="k-input-suffix">kg</span>
+                <span className="absolute right-3 text-xs font-semibold text-slate-500 pointer-events-none">
+                  kg
+                </span>
               </div>
             </div>
           </div>
 
           {bmi > 0 && (
-            <div className="k-metrics" aria-live="polite">
-              <div className="k-metric">
-                <div className="k-metric-label">Current BMI</div>
-                <div className="k-metric-value">{bmi}</div>
-                <div className="k-metric-sub" style={{ color: getCategoryColor(category) }}>{category}</div>
+            <div className="grid grid-cols-2 gap-3" aria-live="polite">
+              <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <div className="text-[0.72rem] font-bold tracking-wider uppercase text-slate-500">
+                  Current BMI
+                </div>
+                <div className="mt-1 text-xl font-extrabold text-slate-900">{bmi}</div>
+                <div className={`text-xs font-semibold ${getCategoryColorClass(category)}`}>
+                  {category}
+                </div>
               </div>
-              <div className="k-metric">
-                <div className="k-metric-label">Base BMR</div>
-                <div className="k-metric-value">{estimatedBMR > 0 ? `~${estimatedBMR}` : "—"}</div>
-                <div className="k-metric-sub" style={{ color: "var(--k-muted)" }}>
+              <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <div className="text-[0.72rem] font-bold tracking-wider uppercase text-slate-500">
+                  Base BMR
+                </div>
+                <div className="mt-1 text-xl font-extrabold text-slate-900">
+                  {estimatedBMR > 0 ? `~${estimatedBMR}` : "—"}
+                </div>
+                <div className="text-xs font-semibold text-slate-500">
                   {estimatedBMR > 0 ? "kcal / day" : "Add age & sex"}
                 </div>
               </div>
             </div>
           )}
 
-          <div className="k-actions">
+          <div className="flex flex-col sm:flex-row gap-2.5 mt-2">
             {typeof onCancel === "function" && (
-              <button type="button" className="k-btn k-btn--outline" onClick={onCancel}>Cancel</button>
+              <button
+                type="button"
+                className="h-11 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-[0.92rem] font-semibold text-slate-900 inline-flex items-center justify-center transition-all"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
             )}
-            <button type="button" className="k-btn k-btn--primary" onClick={handleNext}>
+            <button
+              type="button"
+              className="flex-1 h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center transition-all focus-visible:outline-none focus-visible:shadow-amber-ring"
+              onClick={handleNext}
+            >
               Continue →
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 2 */}
+      {/* STEP 2: HEALTH GOALS & CONDITIONS */}
       {step === 2 && (
-        <div className="k-form">
+        <div className="flex flex-col gap-4">
           <div>
-            <h2 className="k-section-title">Weight Goal</h2>
-            <p className="k-section-desc">Your daily calorie targets and recommended ulam will align with this goal.</p>
+            <h2 className="text-base font-bold text-slate-900">Weight Goal</h2>
+            <p className="mt-0.5 text-xs text-slate-600">
+              Your daily calorie targets and recommended ulam will align with this goal.
+            </p>
           </div>
 
-          <div className="k-choice-grid" role="radiogroup" aria-label="Weight goal">
+          <div className="grid gap-2.5" role="radiogroup" aria-label="Weight goal">
             {WEIGHT_GOALS.map((g) => {
               const GoalIcon = g.Icon;
+              const isSelected = weightGoal === g.id;
               return (
-                <label key={g.id} className="k-choice">
+                <label
+                  key={g.id}
+                  className={`relative flex gap-3 items-start p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-50/90"
+                      : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/40"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="weightGoal"
                     value={g.id}
-                    checked={weightGoal === g.id}
+                    checked={isSelected}
                     onChange={() => setWeightGoal(g.id)}
+                    className="sr-only"
                   />
-                  <span className="k-choice-radio" aria-hidden="true" />
-                  <span className="k-choice-icon-wrap" aria-hidden="true">
+                  <span
+                    className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center transition-all ${
+                      isSelected ? "border-amber-500 bg-amber-500" : "border-slate-300 bg-white"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </span>
+                  <span
+                    className={`shrink-0 grid place-items-center w-8 h-8 rounded-lg transition-colors ${
+                      isSelected
+                        ? "bg-amber-200 text-amber-800"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                    aria-hidden="true"
+                  >
                     <GoalIcon size={20} />
                   </span>
                   <span>
-                    <span className="k-choice-title">{g.title}</span>
-                    <span className="k-choice-desc" style={{ display: "block" }}>{g.desc}</span>
+                    <span className="block text-sm font-bold text-slate-900">{g.title}</span>
+                    <span className="block mt-0.5 text-xs text-slate-600 leading-relaxed">
+                      {g.desc}
+                    </span>
                   </span>
                 </label>
               );
             })}
           </div>
 
-          <div>
-            <h2 className="k-section-title">Health Conditions</h2>
-            <p className="k-section-desc">Select any dietary filters you want KusinApp to apply.</p>
+          <div className="mt-1">
+            <h2 className="text-base font-bold text-slate-900">Health Conditions</h2>
+            <p className="mt-0.5 text-xs text-slate-600">
+              Select any dietary filters you want KusinApp to apply.
+            </p>
           </div>
 
-          <div className="k-chips">
+          <div className="flex flex-wrap gap-2">
             {COMORBIDITIES.map((c) => {
               const selected = comorbidities.includes(c.id);
               return (
                 <button
                   key={c.id}
                   type="button"
-                  className="k-chip"
                   aria-pressed={selected}
                   onClick={() => toggleComorbidity(c.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                    selected
+                      ? "border-amber-500 bg-amber-50 text-amber-800"
+                      : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                  }`}
                 >
                   {selected ? <IconCheck size={14} /> : <IconPlus size={14} />}
                   <span>{c.label}</span>
@@ -380,102 +513,189 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
             })}
           </div>
 
-          <div className="k-actions">
-            <button type="button" className="k-btn k-btn--outline" onClick={handleBack}>← Back</button>
-            <button type="button" className="k-btn k-btn--primary" onClick={handleNext}>Continue →</button>
+          <div className="flex flex-col sm:flex-row gap-2.5 mt-2">
+            <button
+              type="button"
+              className="h-11 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-[0.92rem] font-semibold text-slate-900 inline-flex items-center justify-center transition-all"
+              onClick={handleBack}
+            >
+              ← Back
+            </button>
+            <button
+              type="button"
+              className="flex-1 h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center transition-all focus-visible:outline-none focus-visible:shadow-amber-ring"
+              onClick={handleNext}
+            >
+              Continue →
+            </button>
           </div>
         </div>
       )}
 
-      {/* STEP 3 */}
+      {/* STEP 3: HOUSEHOLD & COOKING SKILL */}
       {step === 3 && (
-        <form className="k-form" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <h2 className="k-section-title">Target Household Profile</h2>
-            <p className="k-section-desc">Sets default recipe ingredient scaling and serving sizes.</p>
+            <h2 className="text-base font-bold text-slate-900">Target Household Profile</h2>
+            <p className="mt-0.5 text-xs text-slate-600">
+              Sets default recipe ingredient scaling and serving sizes.
+            </p>
           </div>
 
-          <div className="k-choice-grid" role="radiogroup" aria-label="Target user profile">
+          <div className="grid gap-2.5" role="radiogroup" aria-label="Target user profile">
             {PERSONAS.map((p) => {
               const PersonaIcon = p.Icon;
+              const isSelected = userPersona === p.id;
               return (
-                <label key={p.id} className="k-choice">
+                <label
+                  key={p.id}
+                  className={`relative flex gap-3 items-start p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-50/90"
+                      : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/40"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="userPersona"
                     value={p.id}
-                    checked={userPersona === p.id}
+                    checked={isSelected}
                     onChange={() => {
                       setUserPersona(p.id);
                       setHouseholdSize(p.pax);
                     }}
+                    className="sr-only"
                   />
-                  <span className="k-choice-radio" aria-hidden="true" />
-                  <span className="k-choice-icon-wrap" aria-hidden="true">
+                  <span
+                    className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center transition-all ${
+                      isSelected ? "border-amber-500 bg-amber-500" : "border-slate-300 bg-white"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </span>
+                  <span
+                    className={`shrink-0 grid place-items-center w-8 h-8 rounded-lg transition-colors ${
+                      isSelected
+                        ? "bg-amber-200 text-amber-800"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                    aria-hidden="true"
+                  >
                     <PersonaIcon size={20} />
                   </span>
                   <span>
-                    <span className="k-choice-title">{p.title}</span>
-                    <span className="k-choice-desc" style={{ display: "block" }}>{p.desc}</span>
+                    <span className="block text-sm font-bold text-slate-900">{p.title}</span>
+                    <span className="block mt-0.5 text-xs text-slate-600 leading-relaxed">
+                      {p.desc}
+                    </span>
                   </span>
                 </label>
               );
             })}
           </div>
 
-          <div className="k-field">
-            <label htmlFor="ob-pax" className="k-label">Number of people eating (household size)</label>
-            <div className="k-input-wrap">
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="ob-pax"
+              className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+            >
+              Number of people eating (household size)
+            </label>
+            <div className="relative flex items-center">
               <input
                 id="ob-pax"
                 type="number"
                 inputMode="numeric"
-                className="k-input"
+                className="w-full h-11 pl-3.5 pr-12 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all"
                 min="1"
                 max="30"
                 value={householdSize}
                 onChange={(e) => setHouseholdSize(e.target.value)}
               />
-              <span className="k-input-suffix">pax</span>
+              <span className="absolute right-3 text-xs font-semibold text-slate-500 pointer-events-none">
+                pax
+              </span>
             </div>
           </div>
 
-          <div>
-            <h2 className="k-section-title">Cooking Skill Level</h2>
-            <p className="k-section-desc">We will suggest recipes and cooking steps suited for your skill level.</p>
+          <div className="mt-1">
+            <h2 className="text-base font-bold text-slate-900">Cooking Skill Level</h2>
+            <p className="mt-0.5 text-xs text-slate-600">
+              We will suggest recipes and cooking steps suited for your skill level.
+            </p>
           </div>
 
-          <div className="k-choice-grid" role="radiogroup" aria-label="Cooking skill level">
+          <div className="grid gap-2.5" role="radiogroup" aria-label="Cooking skill level">
             {SKILLS.map((s) => {
               const SkillIcon = s.Icon;
+              const isSelected = cookingSkill === s.id;
               return (
-                <label key={s.id} className="k-choice">
+                <label
+                  key={s.id}
+                  className={`relative flex gap-3 items-start p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-50/90"
+                      : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/40"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="cookingSkill"
                     value={s.id}
-                    checked={cookingSkill === s.id}
+                    checked={isSelected}
                     onChange={() => setCookingSkill(s.id)}
+                    className="sr-only"
                   />
-                  <span className="k-choice-radio" aria-hidden="true" />
-                  <span className="k-choice-icon-wrap" aria-hidden="true">
+                  <span
+                    className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center transition-all ${
+                      isSelected ? "border-amber-500 bg-amber-500" : "border-slate-300 bg-white"
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </span>
+                  <span
+                    className={`shrink-0 grid place-items-center w-8 h-8 rounded-lg transition-colors ${
+                      isSelected
+                        ? "bg-amber-200 text-amber-800"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                    aria-hidden="true"
+                  >
                     <SkillIcon size={20} />
                   </span>
                   <span>
-                    <span className="k-choice-title">{s.title}</span>
-                    <span className="k-choice-desc" style={{ display: "block" }}>{s.desc}</span>
+                    <span className="block text-sm font-bold text-slate-900">{s.title}</span>
+                    <span className="block mt-0.5 text-xs text-slate-600 leading-relaxed">
+                      {s.desc}
+                    </span>
                   </span>
                 </label>
               );
             })}
           </div>
 
-          <div className="k-actions">
-            <button type="button" className="k-btn k-btn--outline" onClick={handleBack} disabled={isSubmitting}>
+          <div className="flex flex-col sm:flex-row gap-2.5 mt-2">
+            <button
+              type="button"
+              className="h-11 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-[0.92rem] font-semibold text-slate-900 inline-flex items-center justify-center transition-all disabled:opacity-55"
+              onClick={handleBack}
+              disabled={isSubmitting}
+            >
               ← Back
             </button>
-            <button type="submit" className="k-btn k-btn--primary" disabled={isSubmitting}>
-              {isSubmitting && <span className="k-spinner" aria-hidden="true" />}
+            <button
+              type="submit"
+              className="flex-1 h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 focus-visible:outline-none focus-visible:shadow-amber-ring"
+              disabled={isSubmitting}
+            >
+              {isSubmitting && (
+                <span
+                  className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+              )}
               {isSubmitting ? "Saving profile..." : "Complete Profile"}
             </button>
           </div>
@@ -483,14 +703,4 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
       )}
     </div>
   );
-}
-
-function getCategoryColor(category) {
-  switch (category) {
-    case "Normal": return "#067647";
-    case "Overweight": return "#b54708";
-    case "Obese": return "#b42318";
-    case "Underweight": return "#1d4ed8";
-    default: return "var(--k-muted)";
-  }
 }

@@ -1,15 +1,29 @@
 import React, { useState } from "react";
 
-/** Password input with show/hide toggle, shared by Login and Register. */
-export default function PasswordInput({ id, value, onChange, placeholder, disabled, invalid, autoComplete }) {
+/**
+ * Password input with show/hide toggle, styled with Tailwind CSS.
+ */
+export default function PasswordInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  invalid,
+  autoComplete,
+}) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="k-input-wrap">
+    <div className="relative flex items-center">
       <input
         id={id}
         type={visible ? "text" : "password"}
-        className="k-input"
+        className={`w-full h-11 pl-3.5 pr-11 rounded-lg border text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${
+          invalid
+            ? "border-red-600 bg-red-50/40 focus:border-red-600 focus:ring-2 focus:ring-red-500/20"
+            : "border-slate-300 bg-white hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring"
+        }`}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -19,7 +33,7 @@ export default function PasswordInput({ id, value, onChange, placeholder, disabl
       />
       <button
         type="button"
-        className="k-icon-btn"
+        className="absolute right-1.5 grid place-items-center w-8 h-8 rounded-md bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-900/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
@@ -27,11 +41,22 @@ export default function PasswordInput({ id, value, onChange, placeholder, disabl
       >
         {visible ? (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A9.8 9.8 0 0112 5c5 0 9 4.5 10 7-.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.5 8 3 10 2 12c1 2.5 5 7 10 7 1.8 0 3.4-.5 4.8-1.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A9.8 9.8 0 0112 5c5 0 9 4.5 10 7-.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.5 8 3 10 2 12c1 2.5 5 7 10 7 1.8 0 3.4-.5 4.8-1.3"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         ) : (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path
+              d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
             <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
           </svg>
         )}
