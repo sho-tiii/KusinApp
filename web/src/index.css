@@ -1095,15 +1095,215 @@ textarea {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@media (max-width: 360px) {
-  .k-modal-card {
-    padding: 18px 16px;
+/* ==========================================================================
+   ADMIN & SUPER ADMIN SPLIT-SCREEN & DASHBOARD LAYOUT (US-14, 19, 22, 27)
+   ========================================================================== */
+
+.k-admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* Left Showcase Pane */
+.k-admin-showcase {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(32px, 5vw, 64px);
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(245, 158, 11, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(217, 45, 32, 0.08) 0%, transparent 60%),
+    #faf7f0;
+  border-right: 1px solid var(--k-border-subtle);
+}
+
+.k-admin-brand {
+  margin-bottom: clamp(32px, 8vh, 72px);
+}
+
+.k-admin-logo {
+  height: 52px;
+  width: auto;
+  max-width: 240px;
+  object-fit: contain;
+}
+
+.k-admin-headline {
+  font-size: clamp(2rem, 3.8vw, 3.2rem);
+  font-weight: 800;
+  color: var(--k-ink);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  max-width: 540px;
+}
+
+.k-admin-subheadline {
+  margin-top: 20px;
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  color: var(--k-muted);
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+.k-admin-showcase-footer {
+  font-size: 0.8rem;
+  color: var(--k-subtle);
+  margin-top: 32px;
+}
+
+/* Right Auth Pane */
+.k-admin-auth-pane {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 64px);
+  background-color: #ffffff;
+}
+
+.k-admin-auth-box {
+  width: 100%;
+  max-width: 440px;
+}
+
+.k-admin-auth-header {
+  margin-bottom: 28px;
+}
+
+.k-admin-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--k-ink);
+  margin-top: 8px;
+  letter-spacing: -0.02em;
+}
+
+.k-admin-desc {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  color: var(--k-muted);
+}
+
+.k-admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--k-amber-100);
+  color: var(--k-amber-700);
+  border: 1px solid var(--k-amber-200);
+}
+
+.k-admin-badge--super {
+  background: #fee4e2;
+  color: #b42318;
+  border-color: #fecdca;
+}
+
+.k-admin-security-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 24px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--k-border-subtle);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--k-muted);
+  line-height: 1.45;
+}
+
+.k-admin-security-note svg {
+  flex-shrink: 0;
+  color: var(--k-amber-600);
+  margin-top: 2px;
+}
+
+/* Admin Dashboard Shell */
+.k-admin-dashboard {
+  min-height: 100vh;
+  background-color: var(--k-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.k-admin-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--k-border);
+}
+
+.k-admin-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.k-admin-portal-tag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: var(--k-ink);
+  border: 1px solid var(--k-border);
+}
+
+.k-admin-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.k-admin-body {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 36px 20px 56px;
+  box-sizing: border-box;
+}
+
+.k-admin-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  gap: 16px;
+}
+
+.k-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .k-admin-layout {
+    flex-direction: column;
   }
-  .k-modal-actions {
-    flex-direction: column-reverse;
+  .k-admin-showcase {
+    flex: unset;
+    padding: 32px 20px;
   }
-  .k-modal-actions .k-btn {
-    width: 100%;
+  .k-admin-headline {
+    font-size: 1.75rem;
+  }
+  .k-admin-grid {
+    grid-template-columns: 1fr;
+  }
+  .k-admin-header-row {
+    flex-direction: column;
   }
 }
+
 

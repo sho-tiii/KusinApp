@@ -6,6 +6,8 @@ import Register from './components/auth/Register';
 import Login from './components/auth/Login';
 import Onboarding from './components/onboarding/Onboarding';
 import ConfirmationModal from './components/common/ConfirmationModal';
+import AdminLogin from './components/admin/AdminLogin';
+import AdminProfile from './components/admin/AdminProfile';
 
 const PERSONA_LABELS = {
   solo_eater: 'The Solo Eater',
@@ -31,11 +33,37 @@ const CONDITION_LABELS = {
 const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '—');
 
 export default function App() {
+  // Portal navigation: 'user' (Companion Web Viewer) or 'admin' (Admin / Super Admin Portal)
+  const [portal, setPortal] = useState('user');
   const [activeTab, setActiveTab] = useState('login');
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isRetaking, setIsRetaking] = useState(false);
+
+  // Check URL params for ?portal=admin on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('portal') === 'admin') {
+        setPortal('admin');
+      }
+    }
+  }, []);
+
+  // Sync portal query param
+  const switchPortal = (targetPortal) => {
+    setPortal(targetPortal);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (targetPortal === 'admin') {
+        url.searchParams.set('portal', 'admin');
+      } else {
+        url.searchParams.delete('portal');
+      }
+      window.history.pushState({}, '', url.toString());
+    }
+  };
 
   // Reusable confirmation modal state
   const [modalConfig, setModalConfig] = useState({
@@ -78,7 +106,7 @@ export default function App() {
     setModalConfig({
       isOpen: true,
       title: 'Sign Out of KusinApp',
-      message: 'Are you sure you want to log out? Your saved meal plans and pantry records remain safely stored.',
+      message: 'Are you sure you want to log out? Your active session will be ended securely.',
       confirmText: 'Log Out',
       cancelText: 'Cancel',
       variant: 'danger',
@@ -114,9 +142,42 @@ export default function App() {
     .map((w) => w[0].toUpperCase())
     .join('');
 
+  const isAdminOrSuper = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
   const showOnboarding = currentUser && !isLoadingProfile && (!userProfile?.onboardingCompleted || isRetaking);
   const ob = userProfile?.onboarding;
 
+  // =========================================================================
+  // VIEW 1: ADMIN & SUPER ADMIN PORTAL (US-14, US-19, US-22, US-27)
+  // =========================================================================
+  if (portal === 'admin') {
+    if (!currentUser || !isAdminOrSuper) {
+      return (
+        <AdminLogin
+          onLoginSuccess={(user, profile) => {
+            setCurrentUser(user);
+            setUserProfile(profile);
+          }}
+          onSwitchToUserPortal={() => switchPortal('user')}
+        />
+      );
+    }
+
+    return (
+      <AdminProfile
+        user={currentUser}
+        profile={userProfile}
+        onProfileUpdated={async () => {
+          if (currentUser) setUserProfile(await getUserProfile(currentUser.uid));
+        }}
+        onLogout={confirmLogout}
+        onSwitchToUserPortal={() => switchPortal('user')}
+      />
+    );
+  }
+
+  // =========================================================================
+  // VIEW 2: COMPANION WEB VIEWER & USER PORTAL (US-01, US-02, US-03)
+  // =========================================================================
   return (
     <div className="k-page">
       <header className="k-nav">
@@ -128,24 +189,34 @@ export default function App() {
           />
         </div>
 
-        {currentUser && (
-          <div className="k-nav-actions">
+        <div className="k-nav-actions">
+          {/* Admin Switch Shortcut */}
+          <button
+            type="button"
+            className="k-btn k-btn--outline k-btn--sm"
+            onClick={() => switchPortal('admin')}
+            title="Switch to Admin / Super Admin Portal"
+          >
+            Admin Portal ↗
+          </button>
+
+          {currentUser && (
             <div className="k-user">
               <span className="k-avatar" aria-hidden="true">{initials || 'K'}</span>
               <div className="k-user-meta">
                 <div className="k-user-name">{displayName}</div>
                 <div className="k-user-role">{capitalize(userProfile?.role || 'user')}</div>
               </div>
+              <button
+                type="button"
+                className="k-btn k-btn--ghost-danger k-btn--sm"
+                onClick={confirmLogout}
+              >
+                Log Out
+              </button>
             </div>
-            <button
-              type="button"
-              className="k-btn k-btn--ghost-danger k-btn--sm"
-              onClick={confirmLogout}
-            >
-              Log Out
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
       <main className="k-main">
@@ -256,7 +327,7 @@ export default function App() {
         © 2026 KusinApp · Lasang Pinoy sa Bawat Luto.
       </footer>
 
-      {/* Shared Confirmation Modal for Destructive & User Actions */}
+      {/* Shared Confirmation Modal */}
       <ConfirmationModal
         isOpen={modalConfig.isOpen}
         onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
