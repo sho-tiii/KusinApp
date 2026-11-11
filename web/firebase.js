@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBfP4upOEZkU02e9M8Wy2iY9-AB2MCa5LE",
@@ -11,5 +12,7 @@ const firebaseConfig = {
   measurementId: "G-9L0V6VF5FY"
 };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+export const app = initializeApp(firebaseConfig);
+export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
+export const auth = getAuth(app);
+export default app;
