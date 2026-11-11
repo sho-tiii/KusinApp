@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { loginUser } from "./authService";
 import PasswordInput from "./PasswordInput";
+import { IconLock } from "./Icons";
 
 /**
  * US-02: User Authentication Screen (Login.jsx)
- * Email/password sign-in with descriptive error alerts and "Remember me"
- * session persistence. The signed-in state itself is handled by App.jsx.
+ * Clean, production-grade form matching the official prototype.
+ * Uses official SVG icons and responsive mobile-first tokens.
  */
 export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [email, setEmail] = useState("");
@@ -40,9 +41,11 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   return (
     <div>
       <div className="k-card-head">
-        <div className="k-card-icon" aria-hidden="true">🍲</div>
+        <div className="k-card-icon" aria-hidden="true">
+          <IconLock size={24} />
+        </div>
         <h1 className="k-title">Welcome Back</h1>
-        <p className="k-subtitle">Log in to continue planning your Filipino meals with KusinApp.</p>
+        <p className="k-subtitle">Log in to save your favorite recipes and continue them in KusinApp.</p>
       </div>
 
       {errorAlert && (
@@ -58,7 +61,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
             id="login-email"
             type="email"
             className="k-input"
-            placeholder="you@example.com"
+            placeholder="juan@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isSubmitting}
@@ -79,13 +82,21 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
         </div>
 
         <label className="k-check">
-          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
           Remember me
         </label>
 
-        <button type="submit" className="k-btn k-btn--primary k-btn--block" disabled={isSubmitting}>
+        <button
+          type="submit"
+          className="k-btn k-btn--primary k-btn--block"
+          disabled={isSubmitting}
+        >
           {isSubmitting && <span className="k-spinner" aria-hidden="true" />}
-          {isSubmitting ? "Logging in..." : "Log In"}
+          {isSubmitting ? "Signing in..." : "Log In"}
         </button>
       </form>
 

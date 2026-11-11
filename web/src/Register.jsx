@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { registerUser } from "./authService";
 import PasswordInput from "./PasswordInput";
+import { IconUserPlus } from "./Icons";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * US-01: User Registration Screen (Register.jsx)
- * Name, email, password + confirmation with inline validation, then account
- * creation through authService (Firebase Auth + Realtime Database profile).
+ * Clean, production-grade form using official SVG icons and validation feedback.
  */
 export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   const [displayName, setDisplayName] = useState("");
@@ -46,7 +46,6 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
 
     setIsSubmitting(true);
     try {
-      // Firebase signs the new user in automatically; App.jsx then shows onboarding (US-03).
       const user = await registerUser(email, password, displayName);
       if (typeof onRegisterSuccess === "function") onRegisterSuccess(user);
     } catch (err) {
@@ -59,8 +58,10 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   return (
     <div>
       <div className="k-card-head">
-        <div className="k-card-icon" aria-hidden="true">🥘</div>
-        <h1 className="k-title">Create Your Account</h1>
+        <div className="k-card-icon" aria-hidden="true">
+          <IconUserPlus size={24} />
+        </div>
+        <h1 className="k-title">Create an Account</h1>
         <p className="k-subtitle">Plan balanced, affordable Filipino meals and manage your pantry.</p>
       </div>
 
@@ -77,7 +78,7 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
             id="register-name"
             type="text"
             className="k-input"
-            placeholder="e.g., Juan Dela Cruz"
+            placeholder="Juan Dela Cruz"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             disabled={isSubmitting}
@@ -93,7 +94,7 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
             id="register-email"
             type="email"
             className="k-input"
-            placeholder="you@example.com"
+            placeholder="juan@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isSubmitting}

@@ -1,19 +1,19 @@
 import React, { useState, useMemo } from "react";
 import { calculateBMI, calculateBMR, saveUserOnboarding } from "./authService";
 import Select from "./Select";
-
-/**
- * US-03: Health & Cooking Skill Onboarding
- * Aligned with the KusinApp Software Proposal (Section 1):
- * - Demographics (Age, Sex)
- * - Physical metrics & current BMI (Height, Weight -> BMI + category + BMR)
- * - Weight goals: Maintain, Lose, Gain
- * - Existing comorbidities / health conditions
- * - Target user persona: Solo Eater, Household Provider, Health-Targeted Eater
- * - Cooking skill level: Beginner, Intermediate, Advanced
- *
- * Pass `initialData` (an existing onboarding record) to pre-fill when retaking.
- */
+import {
+  IconScale,
+  IconSalad,
+  IconMuscle,
+  IconUserSingle,
+  IconUsersFamily,
+  IconTarget,
+  IconChefHat,
+  IconCookingPot,
+  IconFlame,
+  IconCheck,
+  IconPlus,
+} from "./Icons";
 
 const STEPS = ["Your Body", "Health Goals", "Your Kitchen"];
 
@@ -23,9 +23,24 @@ const SEX_OPTIONS = [
 ];
 
 const WEIGHT_GOALS = [
-  { id: "maintain", emoji: "⚖️", title: "Maintain Weight", desc: "Stay where you are with balanced, nutritious Filipino meals." },
-  { id: "lose", emoji: "🥗", title: "Lose Weight", desc: "Calorie-deficit plans, more gulay, less oil and fat." },
-  { id: "gain", emoji: "💪", title: "Gain Weight / Muscle", desc: "Calorie-surplus, protein-rich Filipino recipes." },
+  {
+    id: "maintain",
+    Icon: IconScale,
+    title: "Maintain Weight",
+    desc: "Stay where you are with balanced, nutritious Filipino meals.",
+  },
+  {
+    id: "lose",
+    Icon: IconSalad,
+    title: "Lose Weight",
+    desc: "Calorie-deficit plans, vegetable-forward, reduced oil and fat.",
+  },
+  {
+    id: "gain",
+    Icon: IconMuscle,
+    title: "Gain Weight / Muscle",
+    desc: "Calorie-surplus, protein-rich Filipino recipes.",
+  },
 ];
 
 const COMORBIDITIES = [
@@ -38,15 +53,48 @@ const COMORBIDITIES = [
 ];
 
 const PERSONAS = [
-  { id: "solo_eater", emoji: "🧑‍🍳", title: "The Solo Eater", desc: "Individual meal prep and a personal grocery budget.", pax: "1" },
-  { id: "household_provider", emoji: "👨‍👩‍👧‍👦", title: "The Household Provider", desc: "Daily, weekly, or monthly meals for the whole family.", pax: "4" },
-  { id: "health_targeted_eater", emoji: "🎯", title: "The Health-Targeted Eater", desc: "Meals planned strictly around weight goals and health conditions.", pax: "1" },
+  {
+    id: "solo_eater",
+    Icon: IconUserSingle,
+    title: "The Solo Eater",
+    desc: "Individual meal prep and a personal grocery budget.",
+    pax: "1",
+  },
+  {
+    id: "household_provider",
+    Icon: IconUsersFamily,
+    title: "The Household Provider",
+    desc: "Daily, weekly, or monthly meals for the whole family.",
+    pax: "4",
+  },
+  {
+    id: "health_targeted_eater",
+    Icon: IconTarget,
+    title: "The Health-Targeted Eater",
+    desc: "Meals planned strictly around weight goals and health conditions.",
+    pax: "1",
+  },
 ];
 
 const SKILLS = [
-  { id: "beginner", emoji: "🥚", title: "Beginner", desc: "Simple boiled and stir-fried dishes — Tinola, Nilaga, Sinigang." },
-  { id: "intermediate", emoji: "🍳", title: "Intermediate", desc: "Sautéing, braising, stewing — Adobo, Afritada, Kare-Kare." },
-  { id: "advanced", emoji: "🔥", title: "Advanced", desc: "Complex regional dishes and multi-step prep — Lechon Kawali, Pinikpikan." },
+  {
+    id: "beginner",
+    Icon: IconChefHat,
+    title: "Beginner",
+    desc: "Simple boiled and stir-fried dishes — Tinola, Nilaga, Sinigang.",
+  },
+  {
+    id: "intermediate",
+    Icon: IconCookingPot,
+    title: "Intermediate",
+    desc: "Sautéing, braising, stewing — Adobo, Afritada, Kare-Kare.",
+  },
+  {
+    id: "advanced",
+    Icon: IconFlame,
+    title: "Advanced",
+    desc: "Complex regional dishes and multi-step prep — Lechon Kawali, Pinikpikan.",
+  },
 ];
 
 export default function Onboarding({ user, initialData, onComplete, onCancel }) {
@@ -148,9 +196,9 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
   return (
     <div>
       <div className="k-card-head">
-        <span className="k-eyebrow">Getting to know you</span>
+        <span className="k-eyebrow">Personalized Profile Setup</span>
         <h1 className="k-title">Set Up Your KusinApp Profile</h1>
-        <p className="k-subtitle">We use this to personalize your meal plans, calorie targets, and recipes.</p>
+        <p className="k-subtitle">We use this to tailor your Filipino meal plans, calorie targets, and recipes.</p>
       </div>
 
       <ol className="k-stepper" aria-label="Onboarding progress" style={{ listStyle: "none", padding: 0, margin: "0 0 24px" }}>
@@ -172,20 +220,29 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
         </div>
       )}
 
-      {/* STEP 1 — Demographics & physical metrics */}
+      {/* STEP 1 */}
       {step === 1 && (
         <div className="k-form">
           <div>
             <h2 className="k-section-title">Demographics & Body Metrics</h2>
-            <p className="k-section-desc">Used to compute your BMI and daily calorie baseline.</p>
+            <p className="k-section-desc">Used to compute your baseline BMI and daily calorie requirements.</p>
           </div>
 
           <div className="k-row">
             <div className="k-field">
               <label htmlFor="ob-age" className="k-label">Age</label>
               <div className="k-input-wrap">
-                <input id="ob-age" type="number" inputMode="numeric" className="k-input" placeholder="e.g., 22"
-                  value={age} onChange={(e) => setAge(e.target.value)} min="10" max="120" />
+                <input
+                  id="ob-age"
+                  type="number"
+                  inputMode="numeric"
+                  className="k-input"
+                  placeholder="22"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  min="10"
+                  max="120"
+                />
                 <span className="k-input-suffix">yrs</span>
               </div>
             </div>
@@ -197,7 +254,7 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
                 value={gender}
                 onChange={setGender}
                 options={SEX_OPTIONS}
-                placeholder="Select"
+                placeholder="Select sex"
               />
             </div>
           </div>
@@ -206,16 +263,34 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
             <div className="k-field">
               <label htmlFor="ob-height" className="k-label">Height</label>
               <div className="k-input-wrap">
-                <input id="ob-height" type="number" inputMode="decimal" className="k-input" placeholder="e.g., 165"
-                  value={heightCm} onChange={(e) => setHeightCm(e.target.value)} min="50" max="250" />
+                <input
+                  id="ob-height"
+                  type="number"
+                  inputMode="decimal"
+                  className="k-input"
+                  placeholder="165"
+                  value={heightCm}
+                  onChange={(e) => setHeightCm(e.target.value)}
+                  min="50"
+                  max="250"
+                />
                 <span className="k-input-suffix">cm</span>
               </div>
             </div>
             <div className="k-field">
               <label htmlFor="ob-weight" className="k-label">Weight</label>
               <div className="k-input-wrap">
-                <input id="ob-weight" type="number" inputMode="decimal" className="k-input" placeholder="e.g., 62"
-                  value={weightKg} onChange={(e) => setWeightKg(e.target.value)} min="20" max="300" />
+                <input
+                  id="ob-weight"
+                  type="number"
+                  inputMode="decimal"
+                  className="k-input"
+                  placeholder="62"
+                  value={weightKg}
+                  onChange={(e) => setWeightKg(e.target.value)}
+                  min="20"
+                  max="300"
+                />
                 <span className="k-input-suffix">kg</span>
               </div>
             </div>
@@ -249,41 +324,57 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
         </div>
       )}
 
-      {/* STEP 2 — Weight goal & comorbidities */}
+      {/* STEP 2 */}
       {step === 2 && (
         <div className="k-form">
           <div>
             <h2 className="k-section-title">Weight Goal</h2>
-            <p className="k-section-desc">Your meal plans and calorie targets will follow this goal.</p>
+            <p className="k-section-desc">Your daily calorie targets and recommended ulam will align with this goal.</p>
           </div>
 
           <div className="k-choice-grid" role="radiogroup" aria-label="Weight goal">
-            {WEIGHT_GOALS.map((g) => (
-              <label key={g.id} className="k-choice">
-                <input type="radio" name="weightGoal" value={g.id} checked={weightGoal === g.id}
-                  onChange={() => setWeightGoal(g.id)} />
-                <span className="k-choice-radio" aria-hidden="true" />
-                <span className="k-choice-emoji" aria-hidden="true">{g.emoji}</span>
-                <span>
-                  <span className="k-choice-title">{g.title}</span>
-                  <span className="k-choice-desc" style={{ display: "block" }}>{g.desc}</span>
-                </span>
-              </label>
-            ))}
+            {WEIGHT_GOALS.map((g) => {
+              const GoalIcon = g.Icon;
+              return (
+                <label key={g.id} className="k-choice">
+                  <input
+                    type="radio"
+                    name="weightGoal"
+                    value={g.id}
+                    checked={weightGoal === g.id}
+                    onChange={() => setWeightGoal(g.id)}
+                  />
+                  <span className="k-choice-radio" aria-hidden="true" />
+                  <span className="k-choice-icon-wrap" aria-hidden="true">
+                    <GoalIcon size={20} />
+                  </span>
+                  <span>
+                    <span className="k-choice-title">{g.title}</span>
+                    <span className="k-choice-desc" style={{ display: "block" }}>{g.desc}</span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           <div>
             <h2 className="k-section-title">Health Conditions</h2>
-            <p className="k-section-desc">Select any that apply so we can filter recipes for you.</p>
+            <p className="k-section-desc">Select any dietary filters you want KusinApp to apply.</p>
           </div>
 
           <div className="k-chips">
             {COMORBIDITIES.map((c) => {
               const selected = comorbidities.includes(c.id);
               return (
-                <button key={c.id} type="button" className="k-chip" aria-pressed={selected}
-                  onClick={() => toggleComorbidity(c.id)}>
-                  {selected ? "✓" : "+"} {c.label}
+                <button
+                  key={c.id}
+                  type="button"
+                  className="k-chip"
+                  aria-pressed={selected}
+                  onClick={() => toggleComorbidity(c.id)}
+                >
+                  {selected ? <IconCheck size={14} /> : <IconPlus size={14} />}
+                  <span>{c.label}</span>
                 </button>
               );
             })}
@@ -296,56 +387,87 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
         </div>
       )}
 
-      {/* STEP 3 — Persona, household size & cooking skill */}
+      {/* STEP 3 */}
       {step === 3 && (
         <form className="k-form" onSubmit={handleSubmit}>
           <div>
-            <h2 className="k-section-title">Who are you cooking for?</h2>
-            <p className="k-section-desc">This sets your default recipe servings.</p>
+            <h2 className="k-section-title">Target Household Profile</h2>
+            <p className="k-section-desc">Sets default recipe ingredient scaling and serving sizes.</p>
           </div>
 
-          <div className="k-choice-grid" role="radiogroup" aria-label="User profile">
-            {PERSONAS.map((p) => (
-              <label key={p.id} className="k-choice">
-                <input type="radio" name="userPersona" value={p.id} checked={userPersona === p.id}
-                  onChange={() => { setUserPersona(p.id); setHouseholdSize(p.pax); }} />
-                <span className="k-choice-radio" aria-hidden="true" />
-                <span className="k-choice-emoji" aria-hidden="true">{p.emoji}</span>
-                <span>
-                  <span className="k-choice-title">{p.title}</span>
-                  <span className="k-choice-desc" style={{ display: "block" }}>{p.desc}</span>
-                </span>
-              </label>
-            ))}
+          <div className="k-choice-grid" role="radiogroup" aria-label="Target user profile">
+            {PERSONAS.map((p) => {
+              const PersonaIcon = p.Icon;
+              return (
+                <label key={p.id} className="k-choice">
+                  <input
+                    type="radio"
+                    name="userPersona"
+                    value={p.id}
+                    checked={userPersona === p.id}
+                    onChange={() => {
+                      setUserPersona(p.id);
+                      setHouseholdSize(p.pax);
+                    }}
+                  />
+                  <span className="k-choice-radio" aria-hidden="true" />
+                  <span className="k-choice-icon-wrap" aria-hidden="true">
+                    <PersonaIcon size={20} />
+                  </span>
+                  <span>
+                    <span className="k-choice-title">{p.title}</span>
+                    <span className="k-choice-desc" style={{ display: "block" }}>{p.desc}</span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           <div className="k-field">
-            <label htmlFor="ob-pax" className="k-label">Number of people eating</label>
+            <label htmlFor="ob-pax" className="k-label">Number of people eating (household size)</label>
             <div className="k-input-wrap">
-              <input id="ob-pax" type="number" inputMode="numeric" className="k-input" min="1" max="30"
-                value={householdSize} onChange={(e) => setHouseholdSize(e.target.value)} />
+              <input
+                id="ob-pax"
+                type="number"
+                inputMode="numeric"
+                className="k-input"
+                min="1"
+                max="30"
+                value={householdSize}
+                onChange={(e) => setHouseholdSize(e.target.value)}
+              />
               <span className="k-input-suffix">pax</span>
             </div>
           </div>
 
           <div>
             <h2 className="k-section-title">Cooking Skill Level</h2>
-            <p className="k-section-desc">We&apos;ll suggest recipes that match your experience.</p>
+            <p className="k-section-desc">We will suggest recipes and cooking steps suited for your skill level.</p>
           </div>
 
           <div className="k-choice-grid" role="radiogroup" aria-label="Cooking skill level">
-            {SKILLS.map((s) => (
-              <label key={s.id} className="k-choice">
-                <input type="radio" name="cookingSkill" value={s.id} checked={cookingSkill === s.id}
-                  onChange={() => setCookingSkill(s.id)} />
-                <span className="k-choice-radio" aria-hidden="true" />
-                <span className="k-choice-emoji" aria-hidden="true">{s.emoji}</span>
-                <span>
-                  <span className="k-choice-title">{s.title}</span>
-                  <span className="k-choice-desc" style={{ display: "block" }}>{s.desc}</span>
-                </span>
-              </label>
-            ))}
+            {SKILLS.map((s) => {
+              const SkillIcon = s.Icon;
+              return (
+                <label key={s.id} className="k-choice">
+                  <input
+                    type="radio"
+                    name="cookingSkill"
+                    value={s.id}
+                    checked={cookingSkill === s.id}
+                    onChange={() => setCookingSkill(s.id)}
+                  />
+                  <span className="k-choice-radio" aria-hidden="true" />
+                  <span className="k-choice-icon-wrap" aria-hidden="true">
+                    <SkillIcon size={20} />
+                  </span>
+                  <span>
+                    <span className="k-choice-title">{s.title}</span>
+                    <span className="k-choice-desc" style={{ display: "block" }}>{s.desc}</span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           <div className="k-actions">
@@ -354,7 +476,7 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
             </button>
             <button type="submit" className="k-btn k-btn--primary" disabled={isSubmitting}>
               {isSubmitting && <span className="k-spinner" aria-hidden="true" />}
-              {isSubmitting ? "Saving..." : "Complete Profile"}
+              {isSubmitting ? "Saving profile..." : "Complete Profile"}
             </button>
           </div>
         </form>

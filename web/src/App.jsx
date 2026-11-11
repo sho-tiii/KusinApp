@@ -12,7 +12,11 @@ const PERSONA_LABELS = {
   health_targeted_eater: 'The Health-Targeted Eater',
 };
 
-const GOAL_LABELS = { maintain: 'Maintain Weight', lose: 'Lose Weight', gain: 'Gain Weight / Muscle' };
+const GOAL_LABELS = {
+  maintain: 'Maintain Weight',
+  lose: 'Lose Weight',
+  gain: 'Gain Weight / Muscle',
+};
 
 const CONDITION_LABELS = {
   none: 'None',
@@ -32,7 +36,6 @@ export default function App() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isRetaking, setIsRetaking] = useState(false);
 
-  // Monitor auth state and fetch user profile + onboarding status
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user || null);
@@ -76,38 +79,55 @@ export default function App() {
 
   return (
     <div className="k-page">
-      <nav className="k-nav">
+      <header className="k-nav">
         <div className="k-brand">
-          <span className="k-brand-mark" aria-hidden="true">🍲</span>
-          <span>Kusin<span className="k-brand-accent">App</span></span>
+          <img
+            src="/assets/kusinapp-logo-horizontal.png"
+            alt="KusinApp"
+            className="k-brand-img"
+          />
         </div>
 
         {currentUser && (
           <div className="k-nav-actions">
             <div className="k-user">
-              <span className="k-avatar" aria-hidden="true">{initials || '🙂'}</span>
+              <span className="k-avatar" aria-hidden="true">{initials || 'K'}</span>
               <div className="k-user-meta">
                 <div className="k-user-name">{displayName}</div>
                 <div className="k-user-role">{capitalize(userProfile?.role || 'user')}</div>
               </div>
             </div>
-            <button type="button" className="k-btn k-btn--ghost-danger k-btn--sm" onClick={handleLogout}>
+            <button
+              type="button"
+              className="k-btn k-btn--ghost-danger k-btn--sm"
+              onClick={handleLogout}
+            >
               Log Out
             </button>
           </div>
         )}
-      </nav>
+      </header>
 
       <main className="k-main">
         {!currentUser && (
           <div className="k-card">
-            <div className="k-tabs" role="tablist" aria-label="Account">
-              <button type="button" role="tab" className="k-tab" aria-selected={activeTab === 'login'}
-                onClick={() => setActiveTab('login')}>
+            <div className="k-tabs" role="tablist" aria-label="Account access">
+              <button
+                type="button"
+                role="tab"
+                className="k-tab"
+                aria-selected={activeTab === 'login'}
+                onClick={() => setActiveTab('login')}
+              >
                 Log In
               </button>
-              <button type="button" role="tab" className="k-tab" aria-selected={activeTab === 'register'}
-                onClick={() => setActiveTab('register')}>
+              <button
+                type="button"
+                role="tab"
+                className="k-tab"
+                aria-selected={activeTab === 'register'}
+                onClick={() => setActiveTab('register')}
+              >
                 Sign Up
               </button>
             </div>
@@ -121,7 +141,9 @@ export default function App() {
         )}
 
         {currentUser && isLoadingProfile && (
-          <div className="k-card"><div className="k-loading">Loading your profile…</div></div>
+          <div className="k-card">
+            <div className="k-loading">Loading your profile…</div>
+          </div>
         )}
 
         {showOnboarding && (
@@ -167,7 +189,7 @@ export default function App() {
             </div>
 
             <ul className="k-summary-list">
-              <li><span>Profile</span><span>{PERSONA_LABELS[ob?.userPersona] || '—'}</span></li>
+              <li><span>Profile Persona</span><span>{PERSONA_LABELS[ob?.userPersona] || '—'}</span></li>
               <li><span>Age & Sex</span><span>{ob?.age} yrs · {capitalize(ob?.gender)}</span></li>
               <li><span>Height & Weight</span><span>{ob?.heightCm} cm · {ob?.weightKg} kg</span></li>
               <li><span>Household Size</span><span>{ob?.householdSize} pax</span></li>
@@ -178,15 +200,21 @@ export default function App() {
               </li>
             </ul>
 
-            <button type="button" className="k-btn k-btn--outline k-btn--block" style={{ marginTop: 20 }}
-              onClick={() => setIsRetaking(true)}>
+            <button
+              type="button"
+              className="k-btn k-btn--outline k-btn--block"
+              style={{ marginTop: 20 }}
+              onClick={() => setIsRetaking(true)}
+            >
               ↻ Retake Onboarding Assessment
             </button>
           </div>
         )}
       </main>
 
-      <footer className="k-footer">© 2026 KusinApp · Made for Filipino kitchens.</footer>
+      <footer className="k-footer">
+        © 2026 KusinApp · Lasang Pinoy sa Bawat Luto.
+      </footer>
     </div>
   );
 }
