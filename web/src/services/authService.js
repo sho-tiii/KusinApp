@@ -137,18 +137,11 @@ export async function registerUser(email, password, displayName, role = "user") 
       updatedAt: serverTimestamp(),
     });
 
-    // 1. Dispatch branded Welcome Email
+    // Dispatch branded Welcome Email / registration notification
     try {
       await sendWelcomeEmail(trimmedEmail, trimmedName);
     } catch (welcomeErr) {
       console.warn("Welcome email dispatch notice:", welcomeErr?.message);
-    }
-
-    // 2. Trigger Firebase Auth official email verification link
-    try {
-      await sendEmailVerification(user);
-    } catch (verifyErr) {
-      console.warn("Firebase email verification dispatch notice:", verifyErr?.message);
     }
 
     return user;
