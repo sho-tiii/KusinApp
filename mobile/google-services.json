@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "923819958215",
+    "project_id": "kusinapp-accd6",
+    "storage_bucket": "kusinapp-accd6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:923819958215:android:47829dbb9695613190c3e2",
+        "android_client_info": {
+          "package_name": "com.atelier101.kusinapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgiEAOgmlncIXk05tnDVcUwKT7TaAK548"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
