@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
+  sendPasswordResetEmail,
   updateProfile,
   setPersistence,
   browserLocalPersistence,
@@ -270,3 +271,27 @@ export async function logoutUser() {
     );
   }
 }
+
+/**
+ * US-02: Password Reset Recovery
+ * Sends a password reset email to the user.
+ */
+export async function resetUserPassword(email) {
+  const trimmedEmail = typeof email === "string" ? email.trim() : "";
+  if (!trimmedEmail) {
+    throw new Error("Please enter your email address to receive a password reset link.");
+  }
+  if (!EMAIL_REGEX.test(trimmedEmail)) {
+    throw new Error("Please enter a valid email address.");
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, trimmedEmail);
+    return true;
+  } catch (error) {
+    throw new Error(
+      formatAuthError(error, "Failed to send password reset email. Please try again.")
+    );
+  }
+}
+

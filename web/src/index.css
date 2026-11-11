@@ -1198,47 +1198,56 @@ textarea {
   background-color: #ffffff;
 }
 
-/* Left Showcase Pane with Centered Content */
+/* Left Showcase Pane with Topbar Logo & Centered Hero Block */
 .k-admin-showcase {
   flex: 1.15;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(32px, 5vw, 64px) clamp(32px, 6vw, 72px);
+  padding: clamp(32px, 5vw, 48px) clamp(32px, 6vw, 64px);
   background:
     radial-gradient(ellipse 70% 50% at 15% 25%, rgba(245, 158, 11, 0.16) 0%, transparent 60%),
     radial-gradient(ellipse 60% 40% at 85% 85%, rgba(217, 45, 32, 0.08) 0%, transparent 60%),
     #faf7f0;
   border-right: 1px solid var(--k-border-subtle);
+  box-sizing: border-box;
+  min-height: 100vh;
 }
 
-.k-admin-showcase-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.k-admin-topbar {
   max-width: 520px;
-  margin: 0 auto;
   width: 100%;
-  flex: 1;
-}
-
-.k-admin-brand {
-  margin-bottom: clamp(24px, 4vh, 48px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
 }
 
 .k-admin-logo {
-  height: 52px;
+  height: 48px;
   width: auto;
-  max-width: 240px;
+  max-width: 220px;
   object-fit: contain;
 }
 
+.k-admin-hero-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
 .k-admin-headline {
-  font-size: clamp(2rem, 3.2vw, 3rem);
+  font-size: clamp(2rem, 3.2vw, 2.75rem);
   font-weight: 800;
   color: var(--k-ink);
-  line-height: 1.15;
+  line-height: 1.18;
   letter-spacing: -0.03em;
+  margin: 0;
 }
 
 .k-admin-subheadline {
@@ -1246,16 +1255,18 @@ textarea {
   font-size: clamp(0.95rem, 1.15vw, 1.05rem);
   color: var(--k-muted);
   line-height: 1.6;
+  margin-bottom: 0;
 }
 
 .k-admin-showcase-footer {
   font-size: 0.8rem;
   color: var(--k-subtle);
-  margin-top: 24px;
   max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
 }
 
 /* Right Auth Pane */
@@ -1398,7 +1409,16 @@ textarea {
   }
   .k-admin-showcase {
     flex: unset;
+    min-height: auto;
     padding: 32px 20px;
+  }
+  .k-admin-topbar,
+  .k-admin-hero-block,
+  .k-admin-showcase-footer {
+    max-width: 100%;
+  }
+  .k-admin-hero-block {
+    padding: 24px 0;
   }
   .k-admin-headline {
     font-size: 1.75rem;
