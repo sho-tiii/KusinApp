@@ -1,47 +1,77 @@
 import React, { useState, useMemo } from "react";
 import { calculateBMI, calculateBMR, saveUserOnboarding } from "./authService";
+import Select from "./Select";
 
 /**
  * US-03: Health & Cooking Skill Onboarding
- * Accurately aligned with KusinApp Software Proposal (Section 1):
- * - Demographics (Age, Gender)
- * - Physical & BMI Targets (Height, Weight -> BMI + Category + BMR)
- * - Weight Goals: Maintain, Gain, Lose
- * - Existing Comorbidities (Hypertension, Diabetes, High Cholesterol, etc.)
- * - Target User Persona: The Solo Eater, The Household Provider, The Health-Targeted Eater
- * - Cooking Skill Level: Beginner, Intermediate, Advanced
+ * Aligned with the KusinApp Software Proposal (Section 1):
+ * - Demographics (Age, Sex)
+ * - Physical metrics & current BMI (Height, Weight -> BMI + category + BMR)
+ * - Weight goals: Maintain, Lose, Gain
+ * - Existing comorbidities / health conditions
+ * - Target user persona: Solo Eater, Household Provider, Health-Targeted Eater
+ * - Cooking skill level: Beginner, Intermediate, Advanced
+ *
+ * Pass `initialData` (an existing onboarding record) to pre-fill when retaking.
  */
-export default function Onboarding({ user, onComplete }) {
+
+const STEPS = ["Your Body", "Health Goals", "Your Kitchen"];
+
+const SEX_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+];
+
+const WEIGHT_GOALS = [
+  { id: "maintain", emoji: "⚖️", title: "Maintain Weight", desc: "Stay where you are with balanced, nutritious Filipino meals." },
+  { id: "lose", emoji: "🥗", title: "Lose Weight", desc: "Calorie-deficit plans, more gulay, less oil and fat." },
+  { id: "gain", emoji: "💪", title: "Gain Weight / Muscle", desc: "Calorie-surplus, protein-rich Filipino recipes." },
+];
+
+const COMORBIDITIES = [
+  { id: "none", label: "None" },
+  { id: "hypertension", label: "Hypertension · Low Sodium" },
+  { id: "diabetes", label: "Diabetes · Low Sugar" },
+  { id: "high_cholesterol", label: "High Cholesterol · Low Fat" },
+  { id: "hyperuricemia_gout", label: "Gout · Low Purine" },
+  { id: "gerd_acid_reflux", label: "Acid Reflux / GERD" },
+];
+
+const PERSONAS = [
+  { id: "solo_eater", emoji: "🧑‍🍳", title: "The Solo Eater", desc: "Individual meal prep and a personal grocery budget.", pax: "1" },
+  { id: "household_provider", emoji: "👨‍👩‍👧‍👦", title: "The Household Provider", desc: "Daily, weekly, or monthly meals for the whole family.", pax: "4" },
+  { id: "health_targeted_eater", emoji: "🎯", title: "The Health-Targeted Eater", desc: "Meals planned strictly around weight goals and health conditions.", pax: "1" },
+];
+
+const SKILLS = [
+  { id: "beginner", emoji: "🥚", title: "Beginner", desc: "Simple boiled and stir-fried dishes — Tinola, Nilaga, Sinigang." },
+  { id: "intermediate", emoji: "🍳", title: "Intermediate", desc: "Sautéing, braising, stewing — Adobo, Afritada, Kare-Kare." },
+  { id: "advanced", emoji: "🔥", title: "Advanced", desc: "Complex regional dishes and multi-step prep — Lechon Kawali, Pinikpikan." },
+];
+
+export default function Onboarding({ user, initialData, onComplete, onCancel }) {
   const [step, setStep] = useState(1);
 
-  // 1. Demographics & Physical Metrics
-  const [age, setAge] = useState("22");
-  const [gender, setGender] = useState("male");
-  const [heightCm, setHeightCm] = useState("");
-  const [weightKg, setWeightKg] = useState("");
+  const [age, setAge] = useState(initialData?.age?.toString() || "");
+  const [gender, setGender] = useState(initialData?.gender || "");
+  const [heightCm, setHeightCm] = useState(initialData?.heightCm?.toString() || "");
+  const [weightKg, setWeightKg] = useState(initialData?.weightKg?.toString() || "");
 
-  // 2. Health & Weight Goals (Proposal: Maintain, Gain, Lose)
-  const [weightGoal, setWeightGoal] = useState("maintain");
-  const [comorbidities, setComorbidities] = useState(["none"]);
+  const [weightGoal, setWeightGoal] = useState(initialData?.weightGoal || "maintain");
+  const [comorbidities, setComorbidities] = useState(initialData?.comorbidities || ["none"]);
 
-  // 3. Target User Profiles (Proposal: Solo Eater, Household Provider, Health-Targeted)
-  const [userPersona, setUserPersona] = useState("solo_eater");
-  const [householdSize, setHouseholdSize] = useState("1");
-
-  // 4. Cooking Skill Level
-  const [cookingSkill, setCookingSkill] = useState("beginner");
+  const [userPersona, setUserPersona] = useState(initialData?.userPersona || "solo_eater");
+  const [householdSize, setHouseholdSize] = useState(initialData?.householdSize?.toString() || "1");
+  const [cookingSkill, setCookingSkill] = useState(initialData?.cookingSkill || "beginner");
 
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Live BMI & BMR calculations
-  const { bmi, category } = useMemo(() => {
-    return calculateBMI(heightCm, weightKg);
-  }, [heightCm, weightKg]);
-
-  const estimatedBMR = useMemo(() => {
-    return calculateBMR(weightKg, heightCm, age, gender);
-  }, [weightKg, heightCm, age, gender]);
+  const { bmi, category } = useMemo(() => calculateBMI(heightCm, weightKg), [heightCm, weightKg]);
+  const estimatedBMR = useMemo(
+    () => (gender ? calculateBMR(weightKg, heightCm, age, gender) : 0),
+    [weightKg, heightCm, age, gender]
+  );
 
   const toggleComorbidity = (condition) => {
     if (condition === "none") {
@@ -49,53 +79,54 @@ export default function Onboarding({ user, onComplete }) {
       return;
     }
     setComorbidities((prev) => {
-      const filtered = prev.filter((c) => c !== "none");
-      return filtered.includes(condition)
-        ? filtered.filter((c) => c !== condition)
-        : [...filtered, condition];
+      const withoutNone = prev.filter((c) => c !== "none");
+      const next = withoutNone.includes(condition)
+        ? withoutNone.filter((c) => c !== condition)
+        : [...withoutNone, condition];
+      return next.length ? next : ["none"];
     });
   };
 
+  const validateStep1 = () => {
+    const a = parseInt(age, 10);
+    const h = parseFloat(heightCm);
+    const w = parseFloat(weightKg);
+    if (!a || a < 10 || a > 120) return "Please enter a valid age between 10 and 120.";
+    if (!gender) return "Please select your biological sex (used to compute your BMR).";
+    if (!h || h < 50 || h > 250) return "Please enter a valid height between 50 and 250 cm.";
+    if (!w || w < 20 || w > 300) return "Please enter a valid weight between 20 and 300 kg.";
+    return "";
+  };
+
   const handleNext = () => {
-    setErrorMsg("");
     if (step === 1) {
-      const a = parseInt(age, 10);
-      const h = parseFloat(heightCm);
-      const w = parseFloat(weightKg);
-      if (!a || a < 10 || a > 120) {
-        setErrorMsg("Please enter a valid age between 10 and 120.");
-        return;
-      }
-      if (!h || h < 50 || h > 250) {
-        setErrorMsg("Please enter a valid height between 50 cm and 250 cm.");
-        return;
-      }
-      if (!w || w < 20 || w > 300) {
-        setErrorMsg("Please enter a valid weight between 20 kg and 300 kg.");
+      const error = validateStep1();
+      if (error) {
+        setErrorMsg(error);
         return;
       }
     }
-    setStep((prev) => prev + 1);
+    setErrorMsg("");
+    setStep((s) => Math.min(STEPS.length, s + 1));
   };
 
   const handleBack = () => {
     setErrorMsg("");
-    setStep((prev) => Math.max(1, prev - 1));
+    setStep((s) => Math.max(1, s - 1));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
 
-    const uid = user?.uid;
-    if (!uid) {
+    if (!user?.uid) {
       setErrorMsg("No active user session found. Please log in first.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = await saveUserOnboarding(uid, {
+      const result = await saveUserOnboarding(user.uid, {
         age,
         gender,
         heightCm,
@@ -106,10 +137,7 @@ export default function Onboarding({ user, onComplete }) {
         householdSize,
         cookingSkill,
       });
-
-      if (typeof onComplete === "function") {
-        onComplete(result);
-      }
+      if (typeof onComplete === "function") onComplete(result);
     } catch (err) {
       setErrorMsg(err.message || "Failed to save onboarding. Please try again.");
     } finally {
@@ -118,546 +146,229 @@ export default function Onboarding({ user, onComplete }) {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <span style={styles.badge}>Step {step} of 3</span>
-          <h2 style={styles.title}>KusinApp Onboarding Assessment</h2>
-          <p style={styles.subtitle}>
-            Personalizing your Filipino meal plans, nutrition gains, and virtual pantry.
-          </p>
+    <div>
+      <div className="k-card-head">
+        <span className="k-eyebrow">Getting to know you</span>
+        <h1 className="k-title">Set Up Your KusinApp Profile</h1>
+        <p className="k-subtitle">We use this to personalize your meal plans, calorie targets, and recipes.</p>
+      </div>
+
+      <ol className="k-stepper" aria-label="Onboarding progress" style={{ listStyle: "none", padding: 0, margin: "0 0 24px" }}>
+        {STEPS.map((label, i) => {
+          const n = i + 1;
+          const state = n < step ? "done" : n === step ? "current" : "upcoming";
+          return (
+            <li key={label} className="k-step" data-state={state} aria-current={state === "current" ? "step" : undefined}>
+              <span className="k-step-bar" />
+              <span>{n}. {label}</span>
+            </li>
+          );
+        })}
+      </ol>
+
+      {errorMsg && (
+        <div role="alert" className="k-alert k-alert--error">
+          {errorMsg}
         </div>
+      )}
 
-        {errorMsg && (
-          <div role="alert" style={styles.alertError}>
-            {errorMsg}
+      {/* STEP 1 — Demographics & physical metrics */}
+      {step === 1 && (
+        <div className="k-form">
+          <div>
+            <h2 className="k-section-title">Demographics & Body Metrics</h2>
+            <p className="k-section-desc">Used to compute your BMI and daily calorie baseline.</p>
           </div>
-        )}
 
-        {/* STEP 1: Demographics, Height, Weight & Current BMI */}
-        {step === 1 && (
-          <div style={styles.stepContent}>
-            <h3 style={styles.sectionTitle}>1. Demographics & Physical Metrics</h3>
-            <p style={styles.sectionDesc}>
-              These metrics establish your baseline BMI targets and daily calorie requirements.
-            </p>
-
-            <div style={styles.row}>
-              <div style={styles.field}>
-                <label style={styles.label}>Age</label>
-                <input
-                  type="number"
-                  placeholder="e.g., 22"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  style={styles.input}
-                  min="10"
-                  max="120"
-                />
-              </div>
-              <div style={styles.field}>
-                <label style={styles.label}>Biological Sex (for BMR)</label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  style={styles.select}
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
+          <div className="k-row">
+            <div className="k-field">
+              <label htmlFor="ob-age" className="k-label">Age</label>
+              <div className="k-input-wrap">
+                <input id="ob-age" type="number" inputMode="numeric" className="k-input" placeholder="e.g., 22"
+                  value={age} onChange={(e) => setAge(e.target.value)} min="10" max="120" />
+                <span className="k-input-suffix">yrs</span>
               </div>
             </div>
-
-            <div style={styles.row}>
-              <div style={styles.field}>
-                <label style={styles.label}>Height (cm)</label>
-                <input
-                  type="number"
-                  placeholder="e.g., 165"
-                  value={heightCm}
-                  onChange={(e) => setHeightCm(e.target.value)}
-                  style={styles.input}
-                  min="50"
-                  max="250"
-                />
-              </div>
-              <div style={styles.field}>
-                <label style={styles.label}>Weight (kg)</label>
-                <input
-                  type="number"
-                  placeholder="e.g., 62"
-                  value={weightKg}
-                  onChange={(e) => setWeightKg(e.target.value)}
-                  style={styles.input}
-                  min="20"
-                  max="300"
-                />
-              </div>
-            </div>
-
-            {bmi > 0 && (
-              <div style={styles.bmiCard}>
-                <div>
-                  <div style={styles.bmiValue}>
-                    Current BMI: <strong>{bmi}</strong>
-                  </div>
-                  <div style={{ ...styles.bmiCategory, color: getCategoryColor(category) }}>
-                    Category: <strong>{category}</strong>
-                  </div>
-                </div>
-                {estimatedBMR > 0 && (
-                  <div style={styles.bmrValue}>
-                    Base BMR: <strong>~{estimatedBMR} kcal/day</strong>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button type="button" onClick={handleNext} style={styles.primaryButton}>
-              Next: Health Goals & Comorbidities →
-            </button>
-          </div>
-        )}
-
-        {/* STEP 2: Health-Targeted Goals & Existing Health Conditions (Comorbidities) */}
-        {step === 2 && (
-          <div style={styles.stepContent}>
-            <h3 style={styles.sectionTitle}>2. Health Goals & Comorbidities</h3>
-            <p style={styles.sectionDesc}>
-              Tailors recipe recommendations strictly around your weight goal and health conditions.
-            </p>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Specific Weight Goal (Proposal Section 1)</label>
-              <div style={styles.radioGrid}>
-                {[
-                  {
-                    id: "maintain",
-                    title: "Maintain Weight",
-                    desc: "Maintain current weight with balanced, nutritious Filipino meals.",
-                  },
-                  {
-                    id: "lose",
-                    title: "Lose Weight",
-                    desc: "Calorie-deficit meal recommendations, vegetable-heavy, low-fat.",
-                  },
-                  {
-                    id: "gain",
-                    title: "Gain Weight / Muscle",
-                    desc: "Calorie-surplus and protein-focused Filipino recipes.",
-                  },
-                ].map((item) => (
-                  <label
-                    key={item.id}
-                    style={{
-                      ...styles.radioCard,
-                      borderColor: weightGoal === item.id ? "#ea580c" : "#e5e7eb",
-                      backgroundColor: weightGoal === item.id ? "#fff7ed" : "#ffffff",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="weightGoal"
-                      value={item.id}
-                      checked={weightGoal === item.id}
-                      onChange={() => setWeightGoal(item.id)}
-                      style={{ marginRight: "10px" }}
-                    />
-                    <div>
-                      <div style={styles.radioTitle}>{item.title}</div>
-                      <div style={styles.radioDesc}>{item.desc}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>
-                Existing Comorbidities & Dietary Filters (Proposal Section 1)
-              </label>
-              <div style={styles.chipContainer}>
-                {[
-                  { id: "none", label: "No Known Health Conditions" },
-                  { id: "hypertension", label: "Hypertension (Low Sodium / Iwas-Alat)" },
-                  { id: "diabetes", label: "Diabetes (Low Glycemic / Low Sugar)" },
-                  { id: "high_cholesterol", label: "High Cholesterol (Low Saturated Fat)" },
-                  { id: "hyperuricemia_gout", label: "Gout / High Uric Acid (Low Purine)" },
-                  { id: "gerd_acid_reflux", label: "Acid Reflux / GERD (Non-Acidic)" },
-                ].map((chip) => {
-                  const selected = comorbidities.includes(chip.id);
-                  return (
-                    <button
-                      key={chip.id}
-                      type="button"
-                      onClick={() => toggleComorbidity(chip.id)}
-                      style={{
-                        ...styles.chip,
-                        backgroundColor: selected ? "#ea580c" : "#f3f4f6",
-                        color: selected ? "#ffffff" : "#374151",
-                        borderColor: selected ? "#ea580c" : "#d1d5db",
-                      }}
-                    >
-                      {selected ? "✓ " : "+ "}
-                      {chip.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={styles.buttonRow}>
-              <button type="button" onClick={handleBack} style={styles.secondaryButton}>
-                ← Back
-              </button>
-              <button type="button" onClick={handleNext} style={styles.primaryButton}>
-                Next: Target Persona & Cooking Skill →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Target User Profile & Cooking Skill Level */}
-        {step === 3 && (
-          <form onSubmit={handleSubmit} style={styles.stepContent}>
-            <h3 style={styles.sectionTitle}>3. Target Persona & Cooking Skill</h3>
-            <p style={styles.sectionDesc}>
-              Select the persona that best describes your cooking setup.
-            </p>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Target User Profile (Proposal Section 1)</label>
-              <div style={styles.radioGrid}>
-                {[
-                  {
-                    id: "solo_eater",
-                    title: "The Solo Eater",
-                    desc: "Managing individual meal prep, single-serving portions, and personal grocery budgets.",
-                    defaultPax: "1",
-                  },
-                  {
-                    id: "household_provider",
-                    title: "The Household Provider",
-                    desc: "Planning daily, weekly, or monthly meals for a family or multi-member household.",
-                    defaultPax: "4",
-                  },
-                  {
-                    id: "health_targeted_eater",
-                    title: "The Health-Targeted Eater",
-                    desc: "Planning meals strictly around specific weight goals and managing health conditions.",
-                    defaultPax: "1",
-                  },
-                ].map((persona) => (
-                  <label
-                    key={persona.id}
-                    style={{
-                      ...styles.radioCard,
-                      borderColor: userPersona === persona.id ? "#ea580c" : "#e5e7eb",
-                      backgroundColor: userPersona === persona.id ? "#fff7ed" : "#ffffff",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="userPersona"
-                      value={persona.id}
-                      checked={userPersona === persona.id}
-                      onChange={() => {
-                        setUserPersona(persona.id);
-                        setHouseholdSize(persona.defaultPax);
-                      }}
-                      style={{ marginRight: "10px" }}
-                    />
-                    <div>
-                      <div style={styles.radioTitle}>{persona.title}</div>
-                      <div style={styles.radioDesc}>{persona.desc}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Number of People Eating (Pax)</label>
-              <input
-                type="number"
-                min="1"
-                max="30"
-                value={householdSize}
-                onChange={(e) => setHouseholdSize(e.target.value)}
-                style={styles.input}
+            <div className="k-field">
+              <span id="ob-sex-label" className="k-label">Biological Sex</span>
+              <Select
+                id="ob-sex"
+                ariaLabelledBy="ob-sex-label"
+                value={gender}
+                onChange={setGender}
+                options={SEX_OPTIONS}
+                placeholder="Select"
               />
             </div>
+          </div>
 
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Cooking Skill Level</label>
-              <div style={styles.radioGrid}>
-                {[
-                  {
-                    id: "beginner",
-                    title: "Beginner",
-                    desc: "Basic knife skills, simple stir-fries, and boiled Filipino soups (Nilaga, Sinigang, Tinola).",
-                  },
-                  {
-                    id: "intermediate",
-                    title: "Intermediate",
-                    desc: "Comfortable sautéing, braising, stewing (Adobo, Afritada, Kare-Kare), seasoning to taste.",
-                  },
-                  {
-                    id: "advanced",
-                    title: "Advanced",
-                    desc: "Complex regional & indigenous dishes, deep-frying (Lechon Kawali), multi-stage preparation.",
-                  },
-                ].map((skill) => (
-                  <label
-                    key={skill.id}
-                    style={{
-                      ...styles.radioCard,
-                      borderColor: cookingSkill === skill.id ? "#ea580c" : "#e5e7eb",
-                      backgroundColor: cookingSkill === skill.id ? "#fff7ed" : "#ffffff",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="cookingSkill"
-                      value={skill.id}
-                      checked={cookingSkill === skill.id}
-                      onChange={() => setCookingSkill(skill.id)}
-                      style={{ marginRight: "10px" }}
-                    />
-                    <div>
-                      <div style={styles.radioTitle}>{skill.title}</div>
-                      <div style={styles.radioDesc}>{skill.desc}</div>
-                    </div>
-                  </label>
-                ))}
+          <div className="k-row">
+            <div className="k-field">
+              <label htmlFor="ob-height" className="k-label">Height</label>
+              <div className="k-input-wrap">
+                <input id="ob-height" type="number" inputMode="decimal" className="k-input" placeholder="e.g., 165"
+                  value={heightCm} onChange={(e) => setHeightCm(e.target.value)} min="50" max="250" />
+                <span className="k-input-suffix">cm</span>
               </div>
             </div>
-
-            <div style={styles.buttonRow}>
-              <button
-                type="button"
-                onClick={handleBack}
-                disabled={isSubmitting}
-                style={styles.secondaryButton}
-              >
-                ← Back
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                style={{
-                  ...styles.primaryButton,
-                  opacity: isSubmitting ? 0.7 : 1,
-                }}
-              >
-                {isSubmitting ? "Saving Profile..." : "Complete Onboarding"}
-              </button>
+            <div className="k-field">
+              <label htmlFor="ob-weight" className="k-label">Weight</label>
+              <div className="k-input-wrap">
+                <input id="ob-weight" type="number" inputMode="decimal" className="k-input" placeholder="e.g., 62"
+                  value={weightKg} onChange={(e) => setWeightKg(e.target.value)} min="20" max="300" />
+                <span className="k-input-suffix">kg</span>
+              </div>
             </div>
-          </form>
-        )}
-      </div>
+          </div>
+
+          {bmi > 0 && (
+            <div className="k-metrics" aria-live="polite">
+              <div className="k-metric">
+                <div className="k-metric-label">Current BMI</div>
+                <div className="k-metric-value">{bmi}</div>
+                <div className="k-metric-sub" style={{ color: getCategoryColor(category) }}>{category}</div>
+              </div>
+              <div className="k-metric">
+                <div className="k-metric-label">Base BMR</div>
+                <div className="k-metric-value">{estimatedBMR > 0 ? `~${estimatedBMR}` : "—"}</div>
+                <div className="k-metric-sub" style={{ color: "var(--k-muted)" }}>
+                  {estimatedBMR > 0 ? "kcal / day" : "Add age & sex"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="k-actions">
+            {typeof onCancel === "function" && (
+              <button type="button" className="k-btn k-btn--outline" onClick={onCancel}>Cancel</button>
+            )}
+            <button type="button" className="k-btn k-btn--primary" onClick={handleNext}>
+              Continue →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2 — Weight goal & comorbidities */}
+      {step === 2 && (
+        <div className="k-form">
+          <div>
+            <h2 className="k-section-title">Weight Goal</h2>
+            <p className="k-section-desc">Your meal plans and calorie targets will follow this goal.</p>
+          </div>
+
+          <div className="k-choice-grid" role="radiogroup" aria-label="Weight goal">
+            {WEIGHT_GOALS.map((g) => (
+              <label key={g.id} className="k-choice">
+                <input type="radio" name="weightGoal" value={g.id} checked={weightGoal === g.id}
+                  onChange={() => setWeightGoal(g.id)} />
+                <span className="k-choice-radio" aria-hidden="true" />
+                <span className="k-choice-emoji" aria-hidden="true">{g.emoji}</span>
+                <span>
+                  <span className="k-choice-title">{g.title}</span>
+                  <span className="k-choice-desc" style={{ display: "block" }}>{g.desc}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div>
+            <h2 className="k-section-title">Health Conditions</h2>
+            <p className="k-section-desc">Select any that apply so we can filter recipes for you.</p>
+          </div>
+
+          <div className="k-chips">
+            {COMORBIDITIES.map((c) => {
+              const selected = comorbidities.includes(c.id);
+              return (
+                <button key={c.id} type="button" className="k-chip" aria-pressed={selected}
+                  onClick={() => toggleComorbidity(c.id)}>
+                  {selected ? "✓" : "+"} {c.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="k-actions">
+            <button type="button" className="k-btn k-btn--outline" onClick={handleBack}>← Back</button>
+            <button type="button" className="k-btn k-btn--primary" onClick={handleNext}>Continue →</button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3 — Persona, household size & cooking skill */}
+      {step === 3 && (
+        <form className="k-form" onSubmit={handleSubmit}>
+          <div>
+            <h2 className="k-section-title">Who are you cooking for?</h2>
+            <p className="k-section-desc">This sets your default recipe servings.</p>
+          </div>
+
+          <div className="k-choice-grid" role="radiogroup" aria-label="User profile">
+            {PERSONAS.map((p) => (
+              <label key={p.id} className="k-choice">
+                <input type="radio" name="userPersona" value={p.id} checked={userPersona === p.id}
+                  onChange={() => { setUserPersona(p.id); setHouseholdSize(p.pax); }} />
+                <span className="k-choice-radio" aria-hidden="true" />
+                <span className="k-choice-emoji" aria-hidden="true">{p.emoji}</span>
+                <span>
+                  <span className="k-choice-title">{p.title}</span>
+                  <span className="k-choice-desc" style={{ display: "block" }}>{p.desc}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="k-field">
+            <label htmlFor="ob-pax" className="k-label">Number of people eating</label>
+            <div className="k-input-wrap">
+              <input id="ob-pax" type="number" inputMode="numeric" className="k-input" min="1" max="30"
+                value={householdSize} onChange={(e) => setHouseholdSize(e.target.value)} />
+              <span className="k-input-suffix">pax</span>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="k-section-title">Cooking Skill Level</h2>
+            <p className="k-section-desc">We&apos;ll suggest recipes that match your experience.</p>
+          </div>
+
+          <div className="k-choice-grid" role="radiogroup" aria-label="Cooking skill level">
+            {SKILLS.map((s) => (
+              <label key={s.id} className="k-choice">
+                <input type="radio" name="cookingSkill" value={s.id} checked={cookingSkill === s.id}
+                  onChange={() => setCookingSkill(s.id)} />
+                <span className="k-choice-radio" aria-hidden="true" />
+                <span className="k-choice-emoji" aria-hidden="true">{s.emoji}</span>
+                <span>
+                  <span className="k-choice-title">{s.title}</span>
+                  <span className="k-choice-desc" style={{ display: "block" }}>{s.desc}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="k-actions">
+            <button type="button" className="k-btn k-btn--outline" onClick={handleBack} disabled={isSubmitting}>
+              ← Back
+            </button>
+            <button type="submit" className="k-btn k-btn--primary" disabled={isSubmitting}>
+              {isSubmitting && <span className="k-spinner" aria-hidden="true" />}
+              {isSubmitting ? "Saving..." : "Complete Profile"}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
 
 function getCategoryColor(category) {
   switch (category) {
-    case "Normal":
-      return "#059669";
-    case "Overweight":
-      return "#d97706";
-    case "Obese":
-      return "#dc2626";
-    case "Underweight":
-      return "#2563eb";
-    default:
-      return "#4b5563";
+    case "Normal": return "#067647";
+    case "Overweight": return "#b54708";
+    case "Obese": return "#b42318";
+    case "Underweight": return "#1d4ed8";
+    default: return "var(--k-muted)";
   }
 }
-
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    padding: "0.5rem 0",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-  },
-  card: {
-    width: "100%",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    padding: "1.25rem",
-  },
-  header: {
-    marginBottom: "1.25rem",
-    textAlign: "center",
-  },
-  badge: {
-    display: "inline-block",
-    padding: "0.25rem 0.65rem",
-    backgroundColor: "#ffedd5",
-    color: "#c2410c",
-    fontSize: "0.75rem",
-    fontWeight: 700,
-    borderRadius: "9999px",
-    marginBottom: "0.5rem",
-    textTransform: "uppercase",
-  },
-  title: {
-    margin: "0 0 0.25rem 0",
-    fontSize: "1.35rem",
-    color: "#111827",
-  },
-  subtitle: {
-    margin: 0,
-    fontSize: "0.85rem",
-    color: "#6b7280",
-  },
-  alertError: {
-    backgroundColor: "#fef2f2",
-    color: "#b91c1c",
-    border: "1px solid #f87171",
-    borderRadius: "8px",
-    padding: "0.65rem 0.85rem",
-    marginBottom: "1rem",
-    fontSize: "0.85rem",
-  },
-  stepContent: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: "1.05rem",
-    color: "#1f2937",
-  },
-  sectionDesc: {
-    margin: "0 0 0.5rem 0",
-    fontSize: "0.825rem",
-    color: "#6b7280",
-  },
-  row: {
-    display: "flex",
-    gap: "0.75rem",
-  },
-  field: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.3rem",
-  },
-  fieldGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.35rem",
-  },
-  label: {
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    color: "#374151",
-  },
-  input: {
-    padding: "0.65rem",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    fontSize: "0.95rem",
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  select: {
-    padding: "0.65rem",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    fontSize: "0.925rem",
-    backgroundColor: "#ffffff",
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  bmiCard: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0.75rem 1rem",
-    backgroundColor: "#f9fafb",
-    border: "1px solid #e5e7eb",
-    borderRadius: "8px",
-  },
-  bmiValue: {
-    fontSize: "0.95rem",
-    color: "#1f2937",
-  },
-  bmiCategory: {
-    fontSize: "0.95rem",
-  },
-  bmrValue: {
-    fontSize: "0.825rem",
-    color: "#6b7280",
-  },
-  radioGrid: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.5rem",
-  },
-  radioCard: {
-    display: "flex",
-    alignItems: "flex-start",
-    padding: "0.75rem",
-    border: "1.5px solid #e5e7eb",
-    borderRadius: "8px",
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
-  radioTitle: {
-    fontSize: "0.9rem",
-    fontWeight: 600,
-    color: "#111827",
-  },
-  radioDesc: {
-    fontSize: "0.775rem",
-    color: "#6b7280",
-    marginTop: "2px",
-  },
-  chipContainer: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0.5rem",
-  },
-  chip: {
-    padding: "0.4rem 0.75rem",
-    borderRadius: "9999px",
-    border: "1px solid #d1d5db",
-    fontSize: "0.785rem",
-    fontWeight: 500,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
-  buttonRow: {
-    display: "flex",
-    gap: "0.75rem",
-    marginTop: "0.5rem",
-  },
-  primaryButton: {
-    flex: 1,
-    padding: "0.75rem",
-    backgroundColor: "#ea580c",
-    color: "#ffffff",
-    fontWeight: 600,
-    fontSize: "0.95rem",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-  secondaryButton: {
-    padding: "0.75rem 1.25rem",
-    backgroundColor: "#f3f4f6",
-    color: "#374151",
-    fontWeight: 600,
-    fontSize: "0.95rem",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    cursor: "pointer",
-  },
-};

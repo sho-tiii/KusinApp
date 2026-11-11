@@ -2,7 +2,10 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
-  updateProfile 
+  updateProfile,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { ref, set, get, update, serverTimestamp } from "firebase/database";
 import { auth, db } from "./firebase";
@@ -273,8 +276,13 @@ export async function getUserProfile(uid) {
 
 /**
  * US-02: User Authentication (Login)
+ *
+ * @param {string} email
+ * @param {string} password
+ * @param {boolean} [remember=true] - Keep the session after the browser closes (local persistence);
+ *   when false, the session ends when the tab/window closes (session persistence).
  */
-export async function loginUser(email, password) {
+export async function loginUser(email, password, remember = true) {
   const trimmedEmail = typeof email === "string" ? email.trim() : "";
 
   if (!trimmedEmail) {
@@ -288,6 +296,10 @@ export async function loginUser(email, password) {
   }
 
   try {
+    await setPersistence(
+      auth,
+      remember ? browserLocalPersistence : browserSessionPersistence
+    );
     const userCredential = await signInWithEmailAndPassword(
       auth,
       trimmedEmail,
