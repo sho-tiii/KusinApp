@@ -46,7 +46,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ padding: '2rem 1rem', fontFamily: 'sans-serif', maxWidth: '520px', margin: 'auto' }}>
+    <div style={{ padding: '2rem 1rem', fontFamily: 'system-ui, sans-serif', maxWidth: '560px', margin: 'auto' }}>
       <header style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <h1 style={{ color: '#ea580c', margin: '0 0 0.25rem 0', fontSize: '1.85rem' }}>🍲 KusinApp</h1>
         <p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem' }}>
@@ -90,21 +90,24 @@ export default function App() {
             <div>
               <div style={{ padding: '0.75rem', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #a7f3d0', marginBottom: '1rem' }}>
                 <div style={{ fontWeight: 600, color: '#047857', fontSize: '0.9rem' }}>
-                  ✓ US-03 Onboarding Complete!
+                  ✓ US-03 Onboarding Assessment Complete!
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#065f46', marginTop: '2px' }}>
-                  Your health profile, BMI, and cooking skill are saved in Firebase.
+                  Your demographics, BMI baseline, target persona, and health conditions are saved.
                 </div>
               </div>
 
-              <div style={{ fontSize: '0.85rem', color: '#374151', lineHeight: '1.6' }}>
-                <div><strong>BMI:</strong> {userProfile.onboarding?.bmi} ({userProfile.onboarding?.bmiCategory})</div>
-                <div><strong>Goal:</strong> {userProfile.onboarding?.primaryGoal?.replace('_', ' ')}</div>
-                <div><strong>Household Size:</strong> {userProfile.onboarding?.householdSize} pax ({userProfile.onboarding?.targetAudience})</div>
+              <div style={{ fontSize: '0.85rem', color: '#374151', lineHeight: '1.7', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <div><strong>Persona:</strong> {formatPersonaName(userProfile.onboarding?.userPersona)}</div>
+                <div><strong>Age & Sex:</strong> {userProfile.onboarding?.age} yrs old, {userProfile.onboarding?.gender}</div>
+                <div><strong>Current BMI:</strong> {userProfile.onboarding?.bmi} ({userProfile.onboarding?.bmiCategory})</div>
+                <div><strong>Base BMR:</strong> ~{userProfile.onboarding?.bmr} kcal/day</div>
+                <div><strong>Specific Weight Goal:</strong> <span style={{ textTransform: 'capitalize' }}>{userProfile.onboarding?.weightGoal}</span> weight</div>
+                <div><strong>Household Size:</strong> {userProfile.onboarding?.householdSize} pax</div>
                 <div><strong>Cooking Skill:</strong> <span style={{ textTransform: 'capitalize' }}>{userProfile.onboarding?.cookingSkill}</span></div>
-                {userProfile.onboarding?.dietaryPreferences?.length > 0 && (
+                {userProfile.onboarding?.comorbidities?.length > 0 && (
                   <div>
-                    <strong>Preferences:</strong> {userProfile.onboarding.dietaryPreferences.join(', ')}
+                    <strong>Comorbidities / Conditions:</strong> {userProfile.onboarding.comorbidities.map(c => c.replace('_', ' ')).join(', ')}
                   </div>
                 )}
               </div>
@@ -179,4 +182,13 @@ export default function App() {
       )}
     </div>
   );
+}
+
+function formatPersonaName(persona) {
+  switch (persona) {
+    case 'solo_eater': return 'The Solo Eater (Single Serving)';
+    case 'household_provider': return 'The Household Provider (Family)';
+    case 'health_targeted_eater': return 'The Health-Targeted Eater (Goal-Focused)';
+    default: return persona || 'General User';
+  }
 }

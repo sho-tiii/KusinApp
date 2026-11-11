@@ -1,40 +1,71 @@
 import React, { useState, useMemo } from "react";
-import { calculateBMI, saveUserOnboarding } from "./authService";
+import { calculateBMI, calculateBMR, saveUserOnboarding } from "./authService";
 
 /**
  * US-03: Health & Cooking Skill Onboarding
- * Collects physical metrics (height, weight -> auto-calculates BMI),
- * dietary/health goals, target audience / household size, and cooking skill level.
+ * Accurately aligned with KusinApp Software Proposal (Section 1):
+ * - Demographics (Age, Gender)
+ * - Physical & BMI Targets (Height, Weight -> BMI + Category + BMR)
+ * - Weight Goals: Maintain, Gain, Lose
+ * - Existing Comorbidities (Hypertension, Diabetes, High Cholesterol, etc.)
+ * - Target User Persona: The Solo Eater, The Household Provider, The Health-Targeted Eater
+ * - Cooking Skill Level: Beginner, Intermediate, Advanced
  */
 export default function Onboarding({ user, onComplete }) {
   const [step, setStep] = useState(1);
+
+  // 1. Demographics & Physical Metrics
+  const [age, setAge] = useState("22");
+  const [gender, setGender] = useState("male");
   const [heightCm, setHeightCm] = useState("");
   const [weightKg, setWeightKg] = useState("");
-  const [primaryGoal, setPrimaryGoal] = useState("healthy_eating");
-  const [targetAudience, setTargetAudience] = useState("solo");
+
+  // 2. Health & Weight Goals (Proposal: Maintain, Gain, Lose)
+  const [weightGoal, setWeightGoal] = useState("maintain");
+  const [comorbidities, setComorbidities] = useState(["none"]);
+
+  // 3. Target User Profiles (Proposal: Solo Eater, Household Provider, Health-Targeted)
+  const [userPersona, setUserPersona] = useState("solo_eater");
   const [householdSize, setHouseholdSize] = useState("1");
+
+  // 4. Cooking Skill Level
   const [cookingSkill, setCookingSkill] = useState("beginner");
-  const [dietaryPreferences, setDietaryPreferences] = useState([]);
 
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Live BMI calculation
+  // Live BMI & BMR calculations
   const { bmi, category } = useMemo(() => {
     return calculateBMI(heightCm, weightKg);
   }, [heightCm, weightKg]);
 
-  const toggleDietaryPref = (pref) => {
-    setDietaryPreferences((prev) =>
-      prev.includes(pref) ? prev.filter((p) => p !== pref) : [...prev, pref]
-    );
+  const estimatedBMR = useMemo(() => {
+    return calculateBMR(weightKg, heightCm, age, gender);
+  }, [weightKg, heightCm, age, gender]);
+
+  const toggleComorbidity = (condition) => {
+    if (condition === "none") {
+      setComorbidities(["none"]);
+      return;
+    }
+    setComorbidities((prev) => {
+      const filtered = prev.filter((c) => c !== "none");
+      return filtered.includes(condition)
+        ? filtered.filter((c) => c !== condition)
+        : [...filtered, condition];
+    });
   };
 
   const handleNext = () => {
     setErrorMsg("");
     if (step === 1) {
+      const a = parseInt(age, 10);
       const h = parseFloat(heightCm);
       const w = parseFloat(weightKg);
+      if (!a || a < 10 || a > 120) {
+        setErrorMsg("Please enter a valid age between 10 and 120.");
+        return;
+      }
       if (!h || h < 50 || h > 250) {
         setErrorMsg("Please enter a valid height between 50 cm and 250 cm.");
         return;
@@ -65,13 +96,15 @@ export default function Onboarding({ user, onComplete }) {
     setIsSubmitting(true);
     try {
       const result = await saveUserOnboarding(uid, {
+        age,
+        gender,
         heightCm,
         weightKg,
-        primaryGoal,
-        targetAudience,
+        weightGoal,
+        comorbidities,
+        userPersona,
         householdSize,
         cookingSkill,
-        dietaryPreferences,
       });
 
       if (typeof onComplete === "function") {
@@ -89,9 +122,9 @@ export default function Onboarding({ user, onComplete }) {
       <div style={styles.card}>
         <div style={styles.header}>
           <span style={styles.badge}>Step {step} of 3</span>
-          <h2 style={styles.title}>KusinApp Profile Setup</h2>
+          <h2 style={styles.title}>KusinApp Onboarding Assessment</h2>
           <p style={styles.subtitle}>
-            Help us personalize your Filipino meal plans and pantry recommendations.
+            Personalizing your Filipino meal plans, nutrition gains, and virtual pantry.
           </p>
         </div>
 
@@ -101,13 +134,39 @@ export default function Onboarding({ user, onComplete }) {
           </div>
         )}
 
-        {/* STEP 1: Health & BMI Assessment */}
+        {/* STEP 1: Demographics, Height, Weight & Current BMI */}
         {step === 1 && (
           <div style={styles.stepContent}>
-            <h3 style={styles.sectionTitle}>1. Health & Physical Assessment</h3>
+            <h3 style={styles.sectionTitle}>1. Demographics & Physical Metrics</h3>
             <p style={styles.sectionDesc}>
-              We calculate your BMI to help tailor daily calorie targets and nutritional recommendations.
+              These metrics establish your baseline BMI targets and daily calorie requirements.
             </p>
+
+            <div style={styles.row}>
+              <div style={styles.field}>
+                <label style={styles.label}>Age</label>
+                <input
+                  type="number"
+                  placeholder="e.g., 22"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  style={styles.input}
+                  min="10"
+                  max="120"
+                />
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Biological Sex (for BMR)</label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+            </div>
 
             <div style={styles.row}>
               <div style={styles.field}>
@@ -138,74 +197,71 @@ export default function Onboarding({ user, onComplete }) {
 
             {bmi > 0 && (
               <div style={styles.bmiCard}>
-                <div style={styles.bmiValue}>
-                  BMI: <strong>{bmi}</strong>
+                <div>
+                  <div style={styles.bmiValue}>
+                    Current BMI: <strong>{bmi}</strong>
+                  </div>
+                  <div style={{ ...styles.bmiCategory, color: getCategoryColor(category) }}>
+                    Category: <strong>{category}</strong>
+                  </div>
                 </div>
-                <div style={{ ...styles.bmiCategory, color: getCategoryColor(category) }}>
-                  Category: <strong>{category}</strong>
-                </div>
+                {estimatedBMR > 0 && (
+                  <div style={styles.bmrValue}>
+                    Base BMR: <strong>~{estimatedBMR} kcal/day</strong>
+                  </div>
+                )}
               </div>
             )}
 
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Primary Meal Planning Goal</label>
-              <select
-                value={primaryGoal}
-                onChange={(e) => setPrimaryGoal(e.target.value)}
-                style={styles.select}
-              >
-                <option value="healthy_eating">Healthy & Balanced Filipino Meals</option>
-                <option value="weight_loss">Weight Management & Calorie Deficit</option>
-                <option value="muscle_gain">High Protein & Muscle Building</option>
-                <option value="budget_friendly">Budget-Friendly Tipid Meals</option>
-                <option value="quick_easy">Quick & Easy (Busy Lifestyle)</option>
-              </select>
-            </div>
-
             <button type="button" onClick={handleNext} style={styles.primaryButton}>
-              Next: Target Audience & Household →
+              Next: Health Goals & Comorbidities →
             </button>
           </div>
         )}
 
-        {/* STEP 2: Target Audience & Household Size */}
+        {/* STEP 2: Health-Targeted Goals & Existing Health Conditions (Comorbidities) */}
         {step === 2 && (
           <div style={styles.stepContent}>
-            <h3 style={styles.sectionTitle}>2. Target Audience & Household</h3>
+            <h3 style={styles.sectionTitle}>2. Health Goals & Comorbidities</h3>
             <p style={styles.sectionDesc}>
-              Tell us who you're cooking for so we can scale recipe ingredient portions.
+              Tailors recipe recommendations strictly around your weight goal and health conditions.
             </p>
 
             <div style={styles.fieldGroup}>
-              <label style={styles.label}>Target Audience</label>
+              <label style={styles.label}>Specific Weight Goal (Proposal Section 1)</label>
               <div style={styles.radioGrid}>
                 {[
-                  { id: "solo", title: "Solo Living / Student", desc: "1 person, quick single servings" },
-                  { id: "couple", title: "Couple / Roommates", desc: "2 people, balanced prep" },
-                  { id: "family_small", title: "Small Family", desc: "3 - 4 people" },
-                  { id: "family_large", title: "Large Family / Household", desc: "5+ people, bulk cooking" },
+                  {
+                    id: "maintain",
+                    title: "Maintain Weight",
+                    desc: "Maintain current weight with balanced, nutritious Filipino meals.",
+                  },
+                  {
+                    id: "lose",
+                    title: "Lose Weight",
+                    desc: "Calorie-deficit meal recommendations, vegetable-heavy, low-fat.",
+                  },
+                  {
+                    id: "gain",
+                    title: "Gain Weight / Muscle",
+                    desc: "Calorie-surplus and protein-focused Filipino recipes.",
+                  },
                 ].map((item) => (
                   <label
                     key={item.id}
                     style={{
                       ...styles.radioCard,
-                      borderColor: targetAudience === item.id ? "#ea580c" : "#e5e7eb",
-                      backgroundColor: targetAudience === item.id ? "#fff7ed" : "#ffffff",
+                      borderColor: weightGoal === item.id ? "#ea580c" : "#e5e7eb",
+                      backgroundColor: weightGoal === item.id ? "#fff7ed" : "#ffffff",
                     }}
                   >
                     <input
                       type="radio"
-                      name="targetAudience"
+                      name="weightGoal"
                       value={item.id}
-                      checked={targetAudience === item.id}
-                      onChange={() => {
-                        setTargetAudience(item.id);
-                        if (item.id === "solo") setHouseholdSize("1");
-                        else if (item.id === "couple") setHouseholdSize("2");
-                        else if (item.id === "family_small") setHouseholdSize("4");
-                        else if (item.id === "family_large") setHouseholdSize("6");
-                      }}
-                      style={{ marginRight: "8px" }}
+                      checked={weightGoal === item.id}
+                      onChange={() => setWeightGoal(item.id)}
+                      style={{ marginRight: "10px" }}
                     />
                     <div>
                       <div style={styles.radioTitle}>{item.title}</div>
@@ -217,98 +273,24 @@ export default function Onboarding({ user, onComplete }) {
             </div>
 
             <div style={styles.fieldGroup}>
-              <label style={styles.label}>Exact Household Size (people)</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={householdSize}
-                onChange={(e) => setHouseholdSize(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.buttonRow}>
-              <button type="button" onClick={handleBack} style={styles.secondaryButton}>
-                ← Back
-              </button>
-              <button type="button" onClick={handleNext} style={styles.primaryButton}>
-                Next: Cooking Skill Level →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Cooking Skill Level & Dietary Preferences */}
-        {step === 3 && (
-          <form onSubmit={handleSubmit} style={styles.stepContent}>
-            <h3 style={styles.sectionTitle}>3. Cooking Skill & Dietary Needs</h3>
-            <p style={styles.sectionDesc}>
-              We recommend Filipino recipes matching your culinary experience level.
-            </p>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Cooking Skill Level</label>
-              <div style={styles.radioGrid}>
-                {[
-                  {
-                    id: "beginner",
-                    title: "Beginner",
-                    desc: "Simple stir-fries, boiled dishes (Nilaga, Sinigang), basic knife skills",
-                  },
-                  {
-                    id: "intermediate",
-                    title: "Intermediate",
-                    desc: "Comfortable sautéing, braising (Adobo, Kare-Kare), seasoning by taste",
-                  },
-                  {
-                    id: "advanced",
-                    title: "Advanced",
-                    desc: "Complex recipes, deep flavors, fiestas, lechon kawali, baking",
-                  },
-                ].map((item) => (
-                  <label
-                    key={item.id}
-                    style={{
-                      ...styles.radioCard,
-                      borderColor: cookingSkill === item.id ? "#ea580c" : "#e5e7eb",
-                      backgroundColor: cookingSkill === item.id ? "#fff7ed" : "#ffffff",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="cookingSkill"
-                      value={item.id}
-                      checked={cookingSkill === item.id}
-                      onChange={() => setCookingSkill(item.id)}
-                      style={{ marginRight: "8px" }}
-                    />
-                    <div>
-                      <div style={styles.radioTitle}>{item.title}</div>
-                      <div style={styles.radioDesc}>{item.desc}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.label}>Dietary Preferences (Optional)</label>
+              <label style={styles.label}>
+                Existing Comorbidities & Dietary Filters (Proposal Section 1)
+              </label>
               <div style={styles.chipContainer}>
                 {[
-                  { id: "low_sodium", label: "Low Sodium / Iwas-Alat" },
-                  { id: "low_sugar", label: "Low Sugar / Diabetic Friendly" },
-                  { id: "high_protein", label: "High Protein" },
-                  { id: "pork_free", label: "Pork-Free / Halal Friendly" },
-                  { id: "pescatarian", label: "Pescatarian / Seafood" },
-                  { id: "vegetable_heavy", label: "Gulay-Heavy / Vegetarian" },
+                  { id: "none", label: "No Known Health Conditions" },
+                  { id: "hypertension", label: "Hypertension (Low Sodium / Iwas-Alat)" },
+                  { id: "diabetes", label: "Diabetes (Low Glycemic / Low Sugar)" },
+                  { id: "high_cholesterol", label: "High Cholesterol (Low Saturated Fat)" },
+                  { id: "hyperuricemia_gout", label: "Gout / High Uric Acid (Low Purine)" },
+                  { id: "gerd_acid_reflux", label: "Acid Reflux / GERD (Non-Acidic)" },
                 ].map((chip) => {
-                  const selected = dietaryPreferences.includes(chip.id);
+                  const selected = comorbidities.includes(chip.id);
                   return (
                     <button
                       key={chip.id}
                       type="button"
-                      onClick={() => toggleDietaryPref(chip.id)}
+                      onClick={() => toggleComorbidity(chip.id)}
                       style={{
                         ...styles.chip,
                         backgroundColor: selected ? "#ea580c" : "#f3f4f6",
@@ -321,6 +303,133 @@ export default function Onboarding({ user, onComplete }) {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            <div style={styles.buttonRow}>
+              <button type="button" onClick={handleBack} style={styles.secondaryButton}>
+                ← Back
+              </button>
+              <button type="button" onClick={handleNext} style={styles.primaryButton}>
+                Next: Target Persona & Cooking Skill →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Target User Profile & Cooking Skill Level */}
+        {step === 3 && (
+          <form onSubmit={handleSubmit} style={styles.stepContent}>
+            <h3 style={styles.sectionTitle}>3. Target Persona & Cooking Skill</h3>
+            <p style={styles.sectionDesc}>
+              Select the persona that best describes your cooking setup.
+            </p>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Target User Profile (Proposal Section 1)</label>
+              <div style={styles.radioGrid}>
+                {[
+                  {
+                    id: "solo_eater",
+                    title: "The Solo Eater",
+                    desc: "Managing individual meal prep, single-serving portions, and personal grocery budgets.",
+                    defaultPax: "1",
+                  },
+                  {
+                    id: "household_provider",
+                    title: "The Household Provider",
+                    desc: "Planning daily, weekly, or monthly meals for a family or multi-member household.",
+                    defaultPax: "4",
+                  },
+                  {
+                    id: "health_targeted_eater",
+                    title: "The Health-Targeted Eater",
+                    desc: "Planning meals strictly around specific weight goals and managing health conditions.",
+                    defaultPax: "1",
+                  },
+                ].map((persona) => (
+                  <label
+                    key={persona.id}
+                    style={{
+                      ...styles.radioCard,
+                      borderColor: userPersona === persona.id ? "#ea580c" : "#e5e7eb",
+                      backgroundColor: userPersona === persona.id ? "#fff7ed" : "#ffffff",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="userPersona"
+                      value={persona.id}
+                      checked={userPersona === persona.id}
+                      onChange={() => {
+                        setUserPersona(persona.id);
+                        setHouseholdSize(persona.defaultPax);
+                      }}
+                      style={{ marginRight: "10px" }}
+                    />
+                    <div>
+                      <div style={styles.radioTitle}>{persona.title}</div>
+                      <div style={styles.radioDesc}>{persona.desc}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Number of People Eating (Pax)</label>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={householdSize}
+                onChange={(e) => setHouseholdSize(e.target.value)}
+                style={styles.input}
+              />
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Cooking Skill Level</label>
+              <div style={styles.radioGrid}>
+                {[
+                  {
+                    id: "beginner",
+                    title: "Beginner",
+                    desc: "Basic knife skills, simple stir-fries, and boiled Filipino soups (Nilaga, Sinigang, Tinola).",
+                  },
+                  {
+                    id: "intermediate",
+                    title: "Intermediate",
+                    desc: "Comfortable sautéing, braising, stewing (Adobo, Afritada, Kare-Kare), seasoning to taste.",
+                  },
+                  {
+                    id: "advanced",
+                    title: "Advanced",
+                    desc: "Complex regional & indigenous dishes, deep-frying (Lechon Kawali), multi-stage preparation.",
+                  },
+                ].map((skill) => (
+                  <label
+                    key={skill.id}
+                    style={{
+                      ...styles.radioCard,
+                      borderColor: cookingSkill === skill.id ? "#ea580c" : "#e5e7eb",
+                      backgroundColor: cookingSkill === skill.id ? "#fff7ed" : "#ffffff",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="cookingSkill"
+                      value={skill.id}
+                      checked={cookingSkill === skill.id}
+                      onChange={() => setCookingSkill(skill.id)}
+                      style={{ marginRight: "10px" }}
+                    />
+                    <div>
+                      <div style={styles.radioTitle}>{skill.title}</div>
+                      <div style={styles.radioDesc}>{skill.desc}</div>
+                    </div>
+                  </label>
+                ))}
               </div>
             </div>
 
@@ -370,14 +479,14 @@ const styles = {
   container: {
     display: "flex",
     justifyContent: "center",
-    padding: "1rem 0",
+    padding: "0.5rem 0",
     fontFamily: "system-ui, -apple-system, sans-serif",
   },
   card: {
     width: "100%",
     backgroundColor: "#ffffff",
     borderRadius: "12px",
-    padding: "1.5rem",
+    padding: "1.25rem",
   },
   header: {
     marginBottom: "1.25rem",
@@ -464,6 +573,8 @@ const styles = {
     fontSize: "0.925rem",
     backgroundColor: "#ffffff",
     outline: "none",
+    width: "100%",
+    boxSizing: "border-box",
   },
   bmiCard: {
     display: "flex",
@@ -480,6 +591,10 @@ const styles = {
   },
   bmiCategory: {
     fontSize: "0.95rem",
+  },
+  bmrValue: {
+    fontSize: "0.825rem",
+    color: "#6b7280",
   },
   radioGrid: {
     display: "flex",

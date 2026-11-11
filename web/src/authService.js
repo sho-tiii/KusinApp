@@ -38,7 +38,7 @@ function formatAuthError(error, defaultMessage) {
 }
 
 /**
- * Calculates Body Mass Index (BMI) and determines BMI category.
+ * Calculates Body Mass Index (BMI) and determines BMI category per WHO standards.
  * Formula: weight (kg) / (height (m) ^ 2)
  *
  * @param {number} heightCm - Height in centimeters
@@ -71,6 +71,27 @@ export function calculateBMI(heightCm, weightKg) {
 }
 
 /**
+ * Calculates estimated Basal Metabolic Rate (BMR) using the Mifflin-St Jeor equation.
+ * Used as the baseline for KusinApp's Calorie & Health Monitor engine.
+ *
+ * @param {number} weightKg
+ * @param {number} heightCm
+ * @param {number} age
+ * @param {"male"|"female"} gender
+ * @returns {number}
+ */
+export function calculateBMR(weightKg, heightCm, age, gender = "male") {
+  const w = parseFloat(weightKg);
+  const h = parseFloat(heightCm);
+  const a = parseInt(age, 10);
+  if (!w || !h || !a) return 0;
+
+  // Mifflin-St Jeor Formula
+  const base = 10 * w + 6.25 * h - 5 * a;
+  return Math.round(gender === "female" ? base - 161 : base + 5);
+}
+
+/**
  * US-01: User Registration
  * Validates inputs, creates the Firebase Auth user, sets displayName,
  * and records user profile data into Firebase Realtime Database at `/users/{uid}`.
@@ -78,7 +99,7 @@ export function calculateBMI(heightCm, weightKg) {
  * @param {string} email
  * @param {string} password
  * @param {string} displayName
- * @param {string} [role="user"] - Optional role: 'user', 'admin', or 'super_admin'
+ * @param {string} [role="user"] - 'user' (End-user), 'admin' (Recipe & Nutrition Moderator), or 'super_admin' (Platform Director)
  * @returns {Promise<import("firebase/auth").User>}
  */
 export async function registerUser(email, password, displayName, role = "user") {
@@ -140,18 +161,20 @@ export async function registerUser(email, password, displayName, role = "user") 
 
 /**
  * US-03: Save Health & Cooking Skill Onboarding
- * Saves BMI assessment, dietary/health goals, household/target audience,
- * and cooking skill level into `/users/{uid}/onboarding`.
+ * Aligned with KusinApp Software Proposal Section 1:
+ * Collects demographics, comorbidities, current BMI, target audience, and cooking skill level.
  *
  * @param {string} uid
  * @param {object} onboardingData
+ * @param {number} onboardingData.age
+ * @param {"male"|"female"|"prefer_not_to_say"} onboardingData.gender
  * @param {number} onboardingData.heightCm
  * @param {number} onboardingData.weightKg
- * @param {string} onboardingData.primaryGoal - e.g., 'weight_loss', 'healthy_eating', 'budget_meal', 'maintenance', 'muscle_gain'
- * @param {string} onboardingData.targetAudience - e.g., 'solo', 'couple', 'family_small', 'family_large'
- * @param {number} onboardingData.householdSize - number of people eating
- * @param {string} onboardingData.cookingSkill - 'beginner', 'intermediate', 'advanced'
- * @param {string[]} [onboardingData.dietaryPreferences] - e.g., ['low_sodium', 'diabetic_friendly', 'none']
+ * @param {"maintain"|"lose"|"gain"} onboardingData.weightGoal - Maintain, Gain, or Lose (Proposal Section 1)
+ * @param {string[]} onboardingData.comorbidities - e.g., ['hypertension', 'diabetes', 'high_cholesterol', 'none']
+ * @param {"solo_eater"|"household_provider"|"health_targeted_eater"} onboardingData.userPersona
+ * @param {number} onboardingData.householdSize
+ * @param {"beginner"|"intermediate"|"advanced"} onboardingData.cookingSkill
  * @returns {Promise<object>}
  */
 export async function saveUserOnboarding(uid, onboardingData) {
@@ -159,36 +182,59 @@ export async function saveUserOnboarding(uid, onboardingData) {
     throw new Error("User ID is required to save onboarding.");
   }
 
+  const age = parseInt(onboardingData.age, 10);
   const height = parseFloat(onboardingData.heightCm);
   const weight = parseFloat(onboardingData.weightKg);
 
-  if (!height || height <= 0 || height > 260) {
+  if (!age || age < 10 || age > 120) {
+    throw new Error("Please enter a valid age (10 to 120).");
+  }
+  if (!height || height <= 50 || height > 260) {
     throw new Error("Please provide a valid height in cm (e.g., 165).");
   }
-  if (!weight || weight <= 0 || weight > 350) {
+  if (!weight || weight <= 20 || weight > 350) {
     throw new Error("Please provide a valid weight in kg (e.g., 60).");
   }
-  if (!onboardingData.primaryGoal) {
-    throw new Error("Please select your primary meal planning goal.");
+  if (!onboardingData.weightGoal) {
+    throw new Error("Please select your weight goal (Maintain, Lose, or Gain).");
+  }
+  if (!onboardingData.userPersona) {
+    throw new Error("Please select your target user profile persona.");
   }
   if (!onboardingData.cookingSkill) {
     throw new Error("Please select your cooking skill level.");
   }
 
   const { bmi, category: bmiCategory } = calculateBMI(height, weight);
+  const bmr = calculateBMR(weight, height, age, onboardingData.gender || "male");
 
   const payload = {
+    // Demographics
+    age,
+    gender: onboardingData.gender || "male",
+
+    // Physical metrics & BMI Targets
     heightCm: height,
     weightKg: weight,
     bmi,
     bmiCategory,
-    primaryGoal: onboardingData.primaryGoal,
-    targetAudience: onboardingData.targetAudience || "solo",
+    bmr,
+
+    // Weight Goals: Strictly Maintain, Gain, Lose (per Proposal Section 1)
+    weightGoal: onboardingData.weightGoal,
+
+    // Comorbidities & Existing Health Conditions (per Proposal Section 1)
+    comorbidities: Array.isArray(onboardingData.comorbidities)
+      ? onboardingData.comorbidities
+      : ["none"],
+
+    // Target User Profiles (Proposal Section 1)
+    userPersona: onboardingData.userPersona, // 'solo_eater', 'household_provider', 'health_targeted_eater'
     householdSize: parseInt(onboardingData.householdSize, 10) || 1,
-    cookingSkill: onboardingData.cookingSkill,
-    dietaryPreferences: Array.isArray(onboardingData.dietaryPreferences)
-      ? onboardingData.dietaryPreferences
-      : [],
+
+    // Cooking Skill Level
+    cookingSkill: onboardingData.cookingSkill, // 'beginner', 'intermediate', 'advanced'
+
     completedAt: serverTimestamp(),
   };
 
@@ -197,9 +243,10 @@ export async function saveUserOnboarding(uid, onboardingData) {
     const onboardingRef = ref(db, `users/${uid}/onboarding`);
     await set(onboardingRef, payload);
 
-    // 2. Mark onboardingCompleted: true on user root
+    // 2. Mark onboardingCompleted: true and record userPersona on root user node
     const userRootRef = ref(db, `users/${uid}`);
     await update(userRootRef, {
+      userPersona: onboardingData.userPersona,
       onboardingCompleted: true,
       updatedAt: serverTimestamp(),
     });
