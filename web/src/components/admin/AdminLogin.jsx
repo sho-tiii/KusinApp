@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { loginAdmin } from "../../services/adminService";
 import PasswordInput from "../common/PasswordInput";
-import AdminForgotPassword from "./AdminForgotPassword";
+import ForgotPassword from "../auth/ForgotPassword";
 
 /**
  * Unified Admin & Super Admin Login (Split-Screen)
@@ -41,7 +41,44 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
   };
 
   if (isForgotPassword) {
-    return <AdminForgotPassword onBackToLogin={() => setIsForgotPassword(false)} />;
+    return (
+      <div className="k-admin-layout">
+        {/* LEFT: Brand & Purpose Showcase */}
+        <div className="k-admin-showcase">
+          <div className="k-admin-topbar">
+            <img
+              src="/assets/kusinapp-logo-horizontal.png"
+              alt="KusinApp"
+              className="k-admin-logo"
+            />
+          </div>
+
+          <div className="k-admin-hero-block">
+            <h1 className="k-admin-headline">
+              Keep every recipe, ingredient, and price in order.
+            </h1>
+            <p className="k-admin-subheadline">
+              Sign in with your administrative credentials to manage root system infrastructure,
+              administrative roles, recipe moderation, and platform-wide configurations.
+            </p>
+          </div>
+
+          <footer className="k-admin-showcase-footer">
+            © 2026 KusinApp. Recipe & Cost Management Platform.
+          </footer>
+        </div>
+
+        {/* RIGHT: Same Cohesive Forgot Password Wizard */}
+        <div className="k-admin-auth-pane">
+          <div className="k-admin-auth-box">
+            <ForgotPassword
+              isAdminPortal={true}
+              onBackToLogin={() => setIsForgotPassword(false)}
+            />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

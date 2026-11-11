@@ -4,6 +4,7 @@ import { auth } from './config/firebase';
 import { getUserProfile, logoutUser } from './services/authService';
 import Register from './components/auth/Register';
 import Login from './components/auth/Login';
+import ForgotPassword from './components/auth/ForgotPassword';
 import Onboarding from './components/onboarding/Onboarding';
 import ConfirmationModal from './components/common/ConfirmationModal';
 import AdminLogin from './components/admin/AdminLogin';
@@ -223,31 +224,38 @@ export default function App() {
       <main className="k-main">
         {!currentUser && (
           <div className="k-card">
-            <div className="k-tabs" role="tablist" aria-label="Account access">
-              <button
-                type="button"
-                role="tab"
-                className="k-tab"
-                aria-selected={activeTab === 'login'}
-                onClick={() => setActiveTab('login')}
-              >
-                Log In
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className="k-tab"
-                aria-selected={activeTab === 'register'}
-                onClick={() => setActiveTab('register')}
-              >
-                Sign Up
-              </button>
-            </div>
+            {activeTab !== 'forgot' && (
+              <div className="k-tabs" role="tablist" aria-label="Account access">
+                <button
+                  type="button"
+                  role="tab"
+                  className="k-tab"
+                  aria-selected={activeTab === 'login'}
+                  onClick={() => setActiveTab('login')}
+                >
+                  Log In
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  className="k-tab"
+                  aria-selected={activeTab === 'register'}
+                  onClick={() => setActiveTab('register')}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
 
             {activeTab === 'register' ? (
               <Register onNavigateToLogin={() => setActiveTab('login')} />
+            ) : activeTab === 'forgot' ? (
+              <ForgotPassword onBackToLogin={() => setActiveTab('login')} />
             ) : (
-              <Login onNavigateToRegister={() => setActiveTab('register')} />
+              <Login
+                onNavigateToRegister={() => setActiveTab('register')}
+                onNavigateToForgot={() => setActiveTab('forgot')}
+              />
             )}
           </div>
         )}

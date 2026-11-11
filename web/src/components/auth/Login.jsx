@@ -1,20 +1,28 @@
 import React, { useState } from "react";
 import { loginUser, loginWithGoogle } from "../../services/authService";
 import PasswordInput from "../common/PasswordInput";
-import UserForgotPassword from "./UserForgotPassword";
+import ForgotPassword from "./ForgotPassword";
 
 /**
  * User Authentication Screen (Login.jsx)
  * Clean, production-grade form matching the official prototype.
  * Displays the official KusinApp emblem atop the card.
  */
-export default function Login({ onLoginSuccess, onNavigateToRegister }) {
+export default function Login({ onLoginSuccess, onNavigateToRegister, onNavigateToForgot }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [errorAlert, setErrorAlert] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+
+  const handleOpenForgot = () => {
+    if (typeof onNavigateToForgot === "function") {
+      onNavigateToForgot();
+    } else {
+      setIsForgotPassword(true);
+    }
+  };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -53,7 +61,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   };
 
   if (isForgotPassword) {
-    return <UserForgotPassword onBackToLogin={() => setIsForgotPassword(false)} />;
+    return <ForgotPassword onBackToLogin={() => setIsForgotPassword(false)} />;
   }
 
   return (
@@ -133,7 +141,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
             type="button"
             className="k-link"
             style={{ fontSize: "0.85rem" }}
-            onClick={() => setIsForgotPassword(true)}
+            onClick={handleOpenForgot}
           >
             Forgot password?
           </button>
