@@ -1,9 +1,8 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBfP4upOEZkU02e9M8Wy2iY9-AB2MCa5LE",
+  apiKey: "AIzaSyBfp4upOEZkUO2e9M8Wy2iY9-AB2MCa5LE",
   authDomain: "kusinapp-accd6.firebaseapp.com",
   projectId: "kusinapp-accd6",
   storageBucket: "kusinapp-accd6.firebasestorage.app",
@@ -12,7 +11,9 @@ const firebaseConfig = {
   measurementId: "G-9L0V6VF5FY"
 };
 
-export const app = initializeApp(firebaseConfig);
-export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize and export Firebase Authentication
 export const auth = getAuth(app);
 export default app;

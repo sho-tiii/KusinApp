@@ -1,8 +1,8 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  updateProfile 
 } from "firebase/auth";
 import { auth } from "./firebase";
 
@@ -38,12 +38,6 @@ function formatAuthError(error, defaultMessage) {
 
 /**
  * US-01: User Registration
- * Validates inputs before creating a new Firebase user account and setting displayName.
- *
- * @param {string} email
- * @param {string} password
- * @param {string} displayName
- * @returns {Promise<import("firebase/auth").User>}
  */
 export async function registerUser(email, password, displayName) {
   const trimmedName = typeof displayName === "string" ? displayName.trim() : "";
@@ -65,9 +59,7 @@ export async function registerUser(email, password, displayName) {
     throw new Error("Password is required.");
   }
   if (password.length < MIN_PASSWORD_LENGTH) {
-    throw new Error(
-      `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`
-    );
+    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
   }
 
   try {
@@ -91,11 +83,6 @@ export async function registerUser(email, password, displayName) {
 
 /**
  * US-02: User Authentication (Login)
- * Validates credentials and signs the user in with Firebase Auth.
- *
- * @param {string} email
- * @param {string} password
- * @returns {Promise<import("firebase/auth").User>}
  */
 export async function loginUser(email, password) {
   const trimmedEmail = typeof email === "string" ? email.trim() : "";
@@ -129,9 +116,6 @@ export async function loginUser(email, password) {
 
 /**
  * US-02: User Authentication (Logout)
- * Ends the active user session.
- *
- * @returns {Promise<void>}
  */
 export async function logoutUser() {
   try {
