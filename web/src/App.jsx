@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
-import { getUserProfile, logoutUser } from './authService';
-import Register from './Register';
-import Login from './Login';
-import Onboarding from './Onboarding';
+import { auth } from './config/firebase';
+import { getUserProfile, logoutUser } from './services/authService';
+import Register from './components/auth/Register';
+import Login from './components/auth/Login';
+import Onboarding from './components/onboarding/Onboarding';
+import ConfirmationModal from './components/common/ConfirmationModal';
 
 const PERSONA_LABELS = {
   solo_eater: 'The Solo Eater',
@@ -36,6 +37,17 @@ export default function App() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isRetaking, setIsRetaking] = useState(false);
 
+  // Reusable confirmation modal state
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
+    variant: 'danger',
+    onConfirm: () => {},
+  });
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user || null);
@@ -59,6 +71,34 @@ export default function App() {
     setUserProfile(null);
     setIsRetaking(false);
     setActiveTab('login');
+    setModalConfig((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const confirmLogout = () => {
+    setModalConfig({
+      isOpen: true,
+      title: 'Sign Out of KusinApp',
+      message: 'Are you sure you want to log out? Your saved meal plans and pantry records remain safely stored.',
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: handleLogout,
+    });
+  };
+
+  const confirmRetakeOnboarding = () => {
+    setModalConfig({
+      isOpen: true,
+      title: 'Retake Health Assessment',
+      message: 'You are about to re-evaluate your physical metrics, target audience, and cooking skill level. Would you like to proceed?',
+      confirmText: 'Retake',
+      cancelText: 'Keep Current',
+      variant: 'primary',
+      onConfirm: () => {
+        setIsRetaking(true);
+        setModalConfig((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
   };
 
   const handleOnboardingComplete = async () => {
@@ -100,7 +140,7 @@ export default function App() {
             <button
               type="button"
               className="k-btn k-btn--ghost-danger k-btn--sm"
-              onClick={handleLogout}
+              onClick={confirmLogout}
             >
               Log Out
             </button>
@@ -204,7 +244,7 @@ export default function App() {
               type="button"
               className="k-btn k-btn--outline k-btn--block"
               style={{ marginTop: 20 }}
-              onClick={() => setIsRetaking(true)}
+              onClick={confirmRetakeOnboarding}
             >
               ↻ Retake Onboarding Assessment
             </button>
@@ -215,6 +255,18 @@ export default function App() {
       <footer className="k-footer">
         © 2026 KusinApp · Lasang Pinoy sa Bawat Luto.
       </footer>
+
+      {/* Shared Confirmation Modal for Destructive & User Actions */}
+      <ConfirmationModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        cancelText={modalConfig.cancelText}
+        variant={modalConfig.variant}
+      />
     </div>
   );
 }

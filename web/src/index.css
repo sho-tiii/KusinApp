@@ -579,6 +579,28 @@ textarea {
   color: var(--k-ink);
 }
 
+.k-btn--danger {
+  background: var(--k-red-500);
+  color: #ffffff;
+  border-color: var(--k-red-600);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+}
+
+.k-btn--danger:hover:not(:disabled) {
+  background: var(--k-red-600);
+}
+
+.k-btn--warning {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #b45309;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+}
+
+.k-btn--warning:hover:not(:disabled) {
+  background: #b45309;
+}
+
 .k-btn--ghost-danger {
   background: #fef3f2;
   border-color: var(--k-error-border);
@@ -992,3 +1014,96 @@ textarea {
     max-width: 660px;
   }
 }
+
+/* ==========================================================================
+   COHESIVE MODAL COMPONENT (ConfirmationModal)
+   ========================================================================== */
+
+.k-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 24, 40, 0.55);
+  backdrop-filter: blur(4px);
+  animation: k-fade-in 0.15s ease-out;
+}
+
+.k-modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 16px;
+  box-shadow: var(--k-shadow-pop);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: k-scale-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.k-modal-icon-badge {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.k-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.k-modal-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--k-ink);
+  line-height: 1.3;
+}
+
+.k-modal-desc {
+  font-size: 0.88rem;
+  color: var(--k-muted);
+  line-height: 1.5;
+}
+
+.k-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.k-modal-actions .k-btn {
+  min-width: 90px;
+}
+
+@keyframes k-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes k-scale-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 360px) {
+  .k-modal-card {
+    padding: 18px 16px;
+  }
+  .k-modal-actions {
+    flex-direction: column-reverse;
+  }
+  .k-modal-actions .k-btn {
+    width: 100%;
+  }
+}
+
