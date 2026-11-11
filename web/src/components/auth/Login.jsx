@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { loginUser, resetUserPassword } from "../../services/authService";
+import { loginUser, loginWithGoogle } from "../../services/authService";
 import PasswordInput from "../common/PasswordInput";
-import ConfirmationModal from "../common/ConfirmationModal";
+import UserForgotPassword from "./UserForgotPassword";
 
 /**
- * US-02: User Authentication Screen (Login.jsx)
+ * User Authentication Screen (Login.jsx)
  * Clean, production-grade form matching the official prototype.
  * Displays the official KusinApp emblem atop the card.
  */
@@ -14,37 +14,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [remember, setRemember] = useState(true);
   const [errorAlert, setErrorAlert] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Forgot Password state
-  const [isResetOpen, setIsResetOpen] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetError, setResetError] = useState("");
-  const [resetSuccess, setResetSuccess] = useState(false);
-  const [isSendingReset, setIsSendingReset] = useState(false);
-
-  const handleOpenReset = () => {
-    setResetEmail(email.trim());
-    setResetError("");
-    setResetSuccess(false);
-    setIsResetOpen(true);
-  };
-
-  const handleSendReset = async () => {
-    setResetError("");
-    if (!resetEmail.trim()) {
-      setResetError("Please enter your email address.");
-      return;
-    }
-    setIsSendingReset(true);
-    try {
-      await resetUserPassword(resetEmail);
-      setResetSuccess(true);
-    } catch (err) {
-      setResetError(err.message || "Failed to send reset link. Please try again.");
-    } finally {
-      setIsSendingReset(false);
-    }
-  };
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -69,6 +39,23 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setErrorAlert("");
+    setIsSubmitting(true);
+    try {
+      const user = await loginWithGoogle();
+      if (typeof onLoginSuccess === "function") onLoginSuccess(user);
+    } catch (err) {
+      setErrorAlert(err.message || "Failed to sign in with Google.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isForgotPassword) {
+    return <UserForgotPassword onBackToLogin={() => setIsForgotPassword(false)} />;
+  }
+
   return (
     <div>
       <div className="k-card-head">
@@ -86,6 +73,25 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
           {errorAlert}
         </div>
       )}
+
+      <button
+        type="button"
+        className="k-btn k-btn--google k-btn--block"
+        onClick={handleGoogleSignIn}
+        disabled={isSubmitting}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+        </svg>
+        Continue with Google
+      </button>
+
+      <div className="k-or-divider">
+        <span>or sign in with email</span>
+      </div>
 
       <form onSubmit={handleLoginSubmit} noValidate className="k-form">
         <div className="k-field">
@@ -127,7 +133,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
             type="button"
             className="k-link"
             style={{ fontSize: "0.85rem" }}
-            onClick={handleOpenReset}
+            onClick={() => setIsForgotPassword(true)}
           >
             Forgot password?
           </button>
@@ -149,59 +155,6 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
           <button type="button" className="k-link" onClick={onNavigateToRegister}>Sign Up</button>
         </p>
       )}
-
-      {/* US-02 Reusable Confirmation / Action Modal for Password Reset */}
-      <ConfirmationModal
-        isOpen={isResetOpen}
-        onClose={() => setIsResetOpen(false)}
-        onConfirm={resetSuccess ? () => setIsResetOpen(false) : handleSendReset}
-        title={resetSuccess ? "Reset Link Sent" : "Reset Password"}
-        confirmText={resetSuccess ? "Done" : "Send Reset Link"}
-        cancelText={resetSuccess ? "Close" : "Cancel"}
-        variant="primary"
-        isLoading={isSendingReset}
-        message={
-          resetSuccess ? (
-            <div>
-              <p style={{ margin: "0 0 8px", color: "var(--k-ink)" }}>
-                We&apos;ve sent a password reset link to:
-              </p>
-              <p style={{ fontWeight: 700, color: "var(--k-ink)", margin: "0 0 12px" }}>
-                {resetEmail}
-              </p>
-              <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--k-muted)" }}>
-                Please check your inbox (and spam folder) and follow the instructions to set your new password.
-              </p>
-            </div>
-          ) : (
-            <div>
-              <p style={{ margin: "0 0 16px", color: "var(--k-muted)", fontSize: "0.92rem", lineHeight: 1.5 }}>
-                Enter your registered account email and we&apos;ll send you a secure link to reset your password.
-              </p>
-              <div className="k-field" style={{ margin: 0 }}>
-                <label htmlFor="reset-email-input" className="k-label">
-                  EMAIL ADDRESS
-                </label>
-                <input
-                  id="reset-email-input"
-                  type="email"
-                  className="k-input"
-                  placeholder="juan@example.com"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  disabled={isSendingReset}
-                  autoComplete="email"
-                />
-              </div>
-              {resetError && (
-                <div role="alert" className="k-alert k-alert--error" style={{ marginTop: 12 }}>
-                  {resetError}
-                </div>
-              )}
-            </div>
-          )
-        }
-      />
     </div>
   );
 }

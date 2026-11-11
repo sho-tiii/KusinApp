@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { updateAdminProfile, changeAdminPassword } from "../../services/adminService";
 import PasswordInput from "../common/PasswordInput";
 import ConfirmationModal from "../common/ConfirmationModal";
+import PasswordStrengthMeter, { evaluatePasswordStrength } from "../common/PasswordStrengthMeter";
 
 /**
- * US-19 & US-27: Admin & Super Admin Profile and Account Management
+ * Admin & Super Admin Profile and Account Management
  * Allows administrators to:
  * - View account metadata (UID, Role: Admin / Moderator vs. Super Admin / Platform Director)
  * - Edit administrator display name
@@ -79,8 +80,9 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
       setPasswordError("Please enter your current administrator password.");
       return;
     }
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters long.");
+    const strength = evaluatePasswordStrength(newPassword);
+    if (!strength.isValid) {
+      setPasswordError("New password must satisfy at least 3 security criteria (minimum 8 characters).");
       return;
     }
     if (newPassword !== confirmNewPassword) {
@@ -113,6 +115,23 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
     });
   };
 
+  const handleSignOutConfirm = () => {
+    setModalConfig({
+      isOpen: true,
+      title: "Sign Out of KusinApp",
+      message: "Are you sure you want to end your administrative session? You will need to re-authenticate to access the admin portal.",
+      confirmText: "Sign Out",
+      cancelText: "Cancel",
+      variant: "danger",
+      onConfirm: async () => {
+        setModalConfig((prev) => ({ ...prev, isOpen: false }));
+        if (typeof onLogout === "function") {
+          await onLogout();
+        }
+      },
+    });
+  };
+
   return (
     <div className="k-admin-dashboard">
       <header className="k-admin-nav">
@@ -138,7 +157,7 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
           <button
             type="button"
             className="k-btn k-btn--ghost-danger k-btn--sm"
-            onClick={onLogout}
+            onClick={handleSignOutConfirm}
           >
             Sign Out
           </button>
@@ -153,7 +172,7 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
             </span>
             <h1 className="k-title">Administrative Account Management</h1>
             <p className="k-subtitle">
-              Manage your administrator credentials, roles, and security policies (Sprint 1 DoD).
+              Manage your administrator credentials, roles, and security policies.
             </p>
           </div>
           <div className="k-admin-role-badge-box">
@@ -164,9 +183,9 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
         </div>
 
         <div className="k-admin-grid">
-          {/* Section 1: Account Information & Profile Edit (US-19 & US-27) */}
+          {/* Section 1: Account Information & Profile Edit */}
           <div className="k-card" style={{ maxWidth: "100%" }}>
-            <h2 className="k-section-title">Administrator Profile (US-19 / US-27)</h2>
+            <h2 className="k-section-title">Administrator Profile</h2>
             <p className="k-section-desc">
               Your name is attached to recipe reviews, local price updates, and activity logs.
             </p>
@@ -217,8 +236,8 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
                   className="k-input"
                   value={
                     isSuperAdmin
-                      ? "Super Admin — Platform Director (US-22 / US-27)"
-                      : "Admin — Recipe & Nutrition Moderator (US-14 / US-19)"
+                      ? "Super Admin — Platform Director"
+                      : "Admin — Recipe & Nutrition Moderator"
                   }
                   disabled
                   style={{ opacity: 0.7, fontWeight: 600 }}
@@ -236,9 +255,9 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
             </form>
           </div>
 
-          {/* Section 2: Password Management (US-19 & US-27) */}
+          {/* Section 2: Password Management */}
           <div className="k-card" style={{ maxWidth: "100%" }}>
-            <h2 className="k-section-title">Password & Security (US-19 / US-27)</h2>
+            <h2 className="k-section-title">Password & Security</h2>
             <p className="k-section-desc">
               Update your administrative sign-in password with strict credential validation.
             </p>
@@ -271,7 +290,7 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
 
               <div className="k-field">
                 <label htmlFor="admin-new-pw" className="k-label">
-                  New Password <span className="k-hint">min. 6 characters</span>
+                  New Password <span className="k-hint">min. 8 characters</span>
                 </label>
                 <PasswordInput
                   id="admin-new-pw"
@@ -281,6 +300,7 @@ export default function AdminProfile({ user, profile, onProfileUpdated, onLogout
                   disabled={isUpdatingPassword}
                   autoComplete="new-password"
                 />
+                <PasswordStrengthMeter password={newPassword} />
               </div>
 
               <div className="k-field">

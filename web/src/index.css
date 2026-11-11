@@ -1431,4 +1431,230 @@ textarea {
   }
 }
 
+/* ==========================================================================
+   GOOGLE AUTH & OR DIVIDER
+   ========================================================================== */
+.k-btn--google {
+  background-color: #ffffff;
+  color: var(--k-ink);
+  border: 1px solid var(--k-border);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.k-btn--google:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #d0d5dd;
+  box-shadow: 0 2px 4px rgba(16, 24, 40, 0.08);
+}
+
+.k-or-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0;
+  text-align: center;
+}
+
+.k-or-divider::before,
+.k-or-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--k-border-subtle);
+}
+
+.k-or-divider span {
+  padding: 0 12px;
+  font-size: 0.78rem;
+  color: var(--k-subtle);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================================
+   PASSWORD RESET FLOWS (STEPPERS & OTP)
+   ========================================================================== */
+.k-auth-flow {
+  width: 100%;
+}
+
+.k-pill-stepper {
+  display: flex;
+  background-color: #f1f4f9;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+
+.k-pill-step {
+  flex: 1;
+  text-align: center;
+  padding: 8px 6px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--k-subtle);
+  transition: all 0.2s ease;
+}
+
+.k-pill-step--active {
+  background-color: #ffffff;
+  color: var(--k-amber-700);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  font-weight: 700;
+}
+
+.k-avatar-emblem {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--k-amber-100);
+  color: var(--k-amber-700);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+}
+
+.k-otp-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 20px;
+}
+
+.k-otp-input {
+  width: 48px;
+  height: 54px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--k-ink);
+  background-color: #f8fafc;
+  border: 1.5px solid var(--k-border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.k-otp-input:focus {
+  background-color: #ffffff;
+  border-color: var(--k-amber-500);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+.k-admin-num-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.k-admin-num-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--k-subtle);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.k-admin-num-step--active {
+  color: var(--k-ink);
+}
+
+.k-admin-num-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--k-border);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.k-admin-num-step--active .k-admin-num-circle {
+  background: var(--k-amber-500);
+}
+
+.k-admin-num-line {
+  flex: 1;
+  height: 2px;
+  background: var(--k-border-subtle);
+  margin: 0 12px;
+}
+
+/* ==========================================================================
+   PASSWORD STRENGTH METER & CHECKLIST
+   ========================================================================== */
+.k-pw-strength {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid var(--k-border-subtle);
+  border-radius: 8px;
+}
+
+.k-pw-strength-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
+}
+
+.k-pw-strength-title {
+  color: var(--k-muted);
+  font-weight: 500;
+}
+
+.k-pw-strength-label {
+  font-weight: 700;
+}
+
+.k-pw-strength-bars {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  margin-bottom: 8px;
+}
+
+.k-pw-strength-segment {
+  flex: 1;
+  height: 100%;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.k-pw-req-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.k-pw-req-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--k-subtle);
+  transition: color 0.15s ease;
+}
+
+.k-pw-req-item--met {
+  color: #12b76a;
+  font-weight: 600;
+}
+
 

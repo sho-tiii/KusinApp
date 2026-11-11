@@ -96,6 +96,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await logoutUser();
+    setCurrentUser(null);
     setUserProfile(null);
     setIsRetaking(false);
     setActiveTab('login');
@@ -147,7 +148,7 @@ export default function App() {
   const ob = userProfile?.onboarding;
 
   // =========================================================================
-  // VIEW 1: ADMIN & SUPER ADMIN PORTAL (US-14, US-19, US-22, US-27)
+  // VIEW 1: ADMIN & SUPER ADMIN PORTAL
   // =========================================================================
   if (portal === 'admin') {
     if (!currentUser || !isAdminOrSuper) {
@@ -169,14 +170,14 @@ export default function App() {
         onProfileUpdated={async () => {
           if (currentUser) setUserProfile(await getUserProfile(currentUser.uid));
         }}
-        onLogout={confirmLogout}
+        onLogout={handleLogout}
         onSwitchToUserPortal={() => switchPortal('user')}
       />
     );
   }
 
   // =========================================================================
-  // VIEW 2: COMPANION WEB VIEWER & USER PORTAL (US-01, US-02, US-03)
+  // VIEW 2: COMPANION WEB VIEWER & USER PORTAL
   // =========================================================================
   return (
     <div className="k-page">
