@@ -1,12 +1,16 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain:
     import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
     "kusinapp-accd6.firebaseapp.com",
+  databaseURL:
+    import.meta.env.VITE_FIREBASE_DATABASE_URL ||
+    "https://kusinapp-accd6-default-rtdb.firebaseio.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "kusinapp-accd6",
   storageBucket:
     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
@@ -24,6 +28,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
-// Initialize and export Firebase Authentication
+// Initialize and export Firebase Authentication & Realtime Database
 export const auth = getAuth(app);
+export const db = getDatabase(app);
 export default app;

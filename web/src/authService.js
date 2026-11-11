@@ -4,7 +4,8 @@ import {
   signOut, 
   updateProfile 
 } from "firebase/auth";
-import { auth } from "./firebase";
+import { ref, set, get, serverTimestamp } from "firebase/database";
+import { auth, db } from "./firebase";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -38,8 +39,16 @@ function formatAuthError(error, defaultMessage) {
 
 /**
  * US-01: User Registration
+ * Validates inputs, creates the Firebase Auth user, sets displayName,
+ * and records user profile data into Firebase Realtime Database at `/users/{uid}`.
+ *
+ * @param {string} email
+ * @param {string} password
+ * @param {string} displayName
+ * @param {string} [role="user"] - Optional role: 'user', 'admin', or 'super_admin'
+ * @returns {Promise<import("firebase/auth").User>}
  */
-export async function registerUser(email, password, displayName) {
+export async function registerUser(email, password, displayName, role = "user") {
   const trimmedName = typeof displayName === "string" ? displayName.trim() : "";
   const trimmedEmail = typeof email === "string" ? email.trim() : "";
 
@@ -69,16 +78,42 @@ export async function registerUser(email, password, displayName) {
       password
     );
 
-    await updateProfile(userCredential.user, {
+    const user = userCredential.user;
+
+    // Update Firebase Auth profile
+    await updateProfile(user, {
       displayName: trimmedName,
     });
 
-    return userCredential.user;
+    // Write user profile to Realtime Database at `/users/{uid}`
+    const userRef = ref(db, `users/${user.uid}`);
+    await set(userRef, {
+      uid: user.uid,
+      displayName: trimmedName,
+      email: trimmedEmail,
+      role: role,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return user;
   } catch (error) {
     throw new Error(
       formatAuthError(error, "Failed to register user. Please try again.")
     );
   }
+}
+
+/**
+ * Helper to fetch a user profile from `/users/{uid}`
+ * @param {string} uid
+ * @returns {Promise<object|null>}
+ */
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  const userRef = ref(db, `users/${uid}`);
+  const snapshot = await get(userRef);
+  return snapshot.exists() ? snapshot.val() : null;
 }
 
 /**
