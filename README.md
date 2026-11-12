@@ -8,83 +8,94 @@
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
     <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
     <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+    <img src="https://img.shields.io/badge/React_Native-Expo-000020?style=flat-square&logo=expo&logoColor=white" alt="Expo" />
     <img src="https://img.shields.io/badge/Firebase-13-FFCA28?style=flat-square&logo=firebase&logoColor=black" alt="Firebase" />
-    <img src="https://img.shields.io/badge/Android-Kotlin-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
+    <img src="https://img.shields.io/badge/Android-Emulator-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android" />
+    <img src="https://img.shields.io/badge/iOS-Expo_Go-000000?style=flat-square&logo=apple&logoColor=white" alt="iOS" />
   </p>
 </div>
 
 ---
 
-## Overview
+## 📖 Overview
 
-**KusinApp** is a cross-platform meal planning and kitchen inventory application designed for Filipino households, solo meal preppers, and health-conscious home cooks. It combines health-aware recipe curation with real-time pantry tracking and localized market cost estimation.
+**KusinApp** is a modern, cross-platform meal planning and kitchen inventory application specifically tailored for Filipino households, solo meal preppers, and health-conscious home cooks. It combines Filipino recipe curation with real-time pantry inventory tracking, personalized biometric health metrics, and localized market cost estimation (*palengke* vs. supermarket).
 
-### Key Features
+### ✨ Key Features
 - **Personalized Health Onboarding** — Computes BMI and daily Basal Metabolic Rate (BMR) via the Mifflin-St Jeor equation alongside dietary goals and health conditions.
 - **Smart Pantry & Spoilage Tracking** — Monitors household ingredients, quantities, and expiration dates to reduce food waste.
-- **Budget-Conscious Meal Planning** — Generates automated grocery lists with local Philippine market price benchmarks (*palengke* vs. supermarket).
-- **Unified Authentication & Role Governance** — Supports Email/Password, Google OAuth, OTP password recovery, and dedicated Admin & Super Admin portals.
+- **Budget-Conscious Meal Planning** — Generates automated grocery lists with local Philippine market price benchmarks.
+- **Unified Authentication & Security** — Supports Email/Password, Google OAuth, OTP password recovery, terms & privacy agreement safeguards, and dedicated Admin & Super Admin portals.
+- **Multi-Platform Experience** — Seamless sync between the web dashboard and mobile app powered by Firebase Realtime Database.
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Web Frontend** | React 19, Vite, Tailwind CSS |
-| **Mobile App** | Native Android (Kotlin / Java) |
-| **Backend & Auth** | Firebase Authentication, Firebase Realtime Database |
-| **Email Service** | Resend / EmailJS REST API |
+| Layer | Technology | Description |
+| :--- | :--- | :--- |
+| **Web Frontend** | React 19, Vite, Tailwind CSS 3.4 | Fast, modern web companion & admin portals |
+| **Mobile App** | React Native, Expo | Native mobile experience for Android and iOS |
+| **Backend & Auth** | Firebase Auth, Realtime Database | Real-time cross-platform state synchronization |
+| **Email Service** | Resend / EmailJS REST API | Secure OTP code verification & password recovery |
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 KusinApp/
-├── web/                  # React + Vite + Tailwind CSS web application
-│   ├── public/           # Static brand assets and icons
+├── web/                  # React 19 + Vite + Tailwind CSS web application
+│   ├── public/           # Static brand assets, horizontal/stacked logos
 │   ├── src/
-│   │   ├── components/   # Auth, Onboarding, Admin, and Common UI components
+│   │   ├── components/   # Auth, Onboarding, Admin, Modals, Navbar, UI
 │   │   ├── config/       # Firebase Web SDK initialization
 │   │   ├── services/     # Auth, Admin, and Email services
-│   │   ├── App.jsx       # Root application and portal router
-│   │   └── main.jsx      # Application entry point
-│   ├── .env.example      # Environment variable template
-│   ├── tailwind.config.js
+│   │   ├── App.jsx       # Root router & role governance
+│   │   └── main.jsx      # Vite entry point
+│   ├── tailwind.config.js# Custom brand color palettes & typography
 │   └── package.json
-├── mobile/               # Native Android Studio project files & configs
-└── backend/              # Firebase Realtime Database & Cloud configurations
+├── mobile/               # React Native + Expo mobile application
+│   ├── assets/           # Centerpiece splash art, transparent logo marks
+│   ├── src/
+│   │   ├── components/   # Reusable UI controls, buttons, cards, animations
+│   │   ├── screens/      # Welcome, Login, SetupIntro, Home dashboards
+│   │   └── services/     # Firebase Mobile SDK initialization & Auth
+│   ├── app.json          # Expo application configuration & bundle IDs
+│   └── package.json
+└── backend/              # Firebase Database schema & cloud rules
 ```
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- **[Node.js](https://nodejs.org/)** `v18.x` or higher (`v20 LTS` recommended)
+- **[Node.js](https://nodejs.org/)** `v18.x` or `v20 LTS` recommended
 - **npm** `v9.x` or higher
 - **Git**
+- *(For Mobile Testing)* **[Android Studio](https://developer.android.com/studio)** or **Expo Go** on your physical phone (Android / iOS)
 
-### Installation & Local Setup
+---
 
-1. **Clone the repository**
+### 🌐 1. Running the Web Companion (`/web`)
+
+1. **Navigate to the web directory:**
    ```bash
-   git clone https://github.com/sho-tiii/KusinApp.git
-   cd KusinApp/web
+   cd web
    ```
 
-2. **Install dependencies**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Configure environment variables**
+3. **Configure environment variables:**
    Copy the `.env.example` template to `.env`:
    ```bash
    cp .env.example .env
    ```
-   Open `web/.env` and provide your Firebase Web API key:
+   Provide your Firebase Web configuration:
    ```env
    VITE_FIREBASE_API_KEY=your_firebase_api_key_here
    VITE_FIREBASE_AUTH_DOMAIN=kusinapp-accd6.firebaseapp.com
@@ -96,36 +107,81 @@ KusinApp/
    VITE_FIREBASE_DATABASE_URL=https://kusinapp-accd6-default-rtdb.asia-southeast1.firebasedatabase.app
    ```
 
-4. **Start the development server**
+4. **Start the local development server:**
    ```bash
    npm run dev
    ```
-
----
-
-## Application Portals
-
-Once the development server is running, access the portals in your browser:
+   Open `http://localhost:5173/` in your browser.
 
 | Portal | Local URL | Description |
 | :--- | :--- | :--- |
-| **User Companion Web** | `http://localhost:5173/` | Standard user login, registration, and health onboarding |
-| **Admin & Super Admin** | `http://localhost:5173/?portal=admin` | Administrative sign-in, role guard, and profile security |
-
-> **Development Tip:** During local testing without an external email API key configured, generated 6-digit OTP codes are logged to the browser **DevTools Console (`F12`)**. You may also use the development test code `123456`.
+| **User Companion** | `http://localhost:5173/` | Member login, registration, and health onboarding |
+| **Admin & Super Admin** | `http://localhost:5173/?portal=admin` | Staff portal, role guards, and recipe governance |
 
 ---
 
-## Available Scripts
+### 📱 2. Running the Mobile App (`/mobile`)
 
-Run these commands inside the `/web` directory:
+1. **Navigate to the mobile directory:**
+   ```bash
+   cd mobile
+   ```
 
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the Expo development server:**
+   ```bash
+   npx expo start
+   ```
+
+4. **Choose your test environment:**
+   - **Option A: On your Android Emulator (PC Desktop)**
+     1. Open **Android Studio** ➔ **Virtual Device Manager**.
+     2. Click **Play (▶)** on your virtual phone (e.g., Pixel 7 / Pixel 8 with API 34 or 35).
+     3. In your terminal where Expo is running, press **`a`**.
+     4. Expo will automatically install Expo Go into the emulator and launch KusinApp!
+   - **Option B: On your Physical Phone (Expo Go)**
+     1. Download **Expo Go** from the Google Play Store (Android) or App Store (iOS).
+     2. Scan the QR code displayed in your terminal using Expo Go (Android) or default Camera (iOS).
+
+---
+
+## ⚙️ Android Studio Emulator Troubleshooting (Windows)
+
+If the emulator displays:  
+`Windows Hypervisor Platform is not enabled`
+
+1. **Check CPU Virtualization:**
+   - Press `Ctrl + Shift + Esc` (Task Manager) ➔ **Performance** ➔ **CPU**.
+   - Ensure **Virtualization: Enabled** is shown.
+   - If *Disabled*, enable **Intel Virtualization Technology (VT-x)** or **AMD SVM Mode** in your computer's BIOS/UEFI.
+2. **Enable Windows Features:**
+   - Search for **"Turn Windows features on or off"** in the Windows Start menu.
+   - Check ☑️ **Windows Hypervisor Platform** and ☑️ **Virtual Machine Platform**.
+   - Click **OK** and restart your computer.
+
+---
+
+## ⌨️ Development Commands
+
+### Web (`/web`)
 | Command | Description |
 | :--- | :--- |
-| `npm run dev` | Starts the Vite local development server with HMR |
-| `npm run build` | Builds the production bundle into `dist/` |
-| `npm run preview` | Locally previews the production build |
+| `npm run dev` | Starts Vite development server with HMR |
+| `npm run build` | Compiles optimized production bundle in `dist/` |
+| `npm run preview` | Locally serves the production build |
 | `npm run lint` | Runs ESLint across the codebase |
+
+### Mobile (`/mobile`)
+| Command | Description |
+| :--- | :--- |
+| `npx expo start` | Starts Metro bundler development server |
+| `a` *(in terminal)* | Launches or connects to Android Emulator |
+| `r` *(in terminal)* | Reloads the app on connected devices |
+| `Ctrl + M` *(in emulator)* | Opens the developer menu & inspector |
 
 ---
 
