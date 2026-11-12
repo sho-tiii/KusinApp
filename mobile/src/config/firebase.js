@@ -33,9 +33,12 @@ export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Initialize Auth with AsyncStorage persistence for React Native
 let authInstance;
 try {
-  authInstance = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
+  authInstance =
+    typeof getReactNativePersistence === "function"
+      ? initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage),
+        })
+      : getAuth(app);
 } catch (e) {
   authInstance = getAuth(app);
 }
