@@ -32,10 +32,4 @@ if (!http.Server.prototype.__kusinappHeaderSanitizerInstalled) {
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver = config.resolver || {};
-config.resolver.sourceExts = Array.from(
-  new Set([...(config.resolver.sourceExts || []), "cjs"])
-);
-config.resolver.unstable_enablePackageExports = false;
-
 module.exports = config;
