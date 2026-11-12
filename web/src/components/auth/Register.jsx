@@ -63,14 +63,10 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
       return;
     }
     if (!agreedTermsDoc) {
-      setFormError(
-        "Please read and click 'I Agree' on both the Terms & Conditions and Privacy Policy first."
-      );
       setActiveDocModal("terms");
       return;
     }
     if (!agreedPrivacyDoc) {
-      setFormError("Please also read and click 'I Agree' on the Privacy Policy.");
       setActiveDocModal("privacy");
     }
   };
@@ -390,33 +386,46 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
         </p>
       )}
 
-      {/* Modal 1: Terms & Conditions */}
+      {/* Chained Terms & Conditions -> Privacy Policy Modal */}
       <ConfirmationModal
-        isOpen={activeDocModal === "terms"}
+        isOpen={!!activeDocModal}
         onClose={() => setActiveDocModal(null)}
         onConfirm={() => {
-          setAgreedTermsDoc(true);
-          if (agreedPrivacyDoc) setFormError("");
-          setActiveDocModal(null);
+          if (activeDocModal === "terms") {
+            setAgreedTermsDoc(true);
+            if (!agreedPrivacyDoc) {
+              setActiveDocModal("privacy");
+            } else {
+              setFormError("");
+              setActiveDocModal(null);
+            }
+          } else if (activeDocModal === "privacy") {
+            setAgreedPrivacyDoc(true);
+            if (!agreedTermsDoc) {
+              setActiveDocModal("terms");
+            } else {
+              setFormError("");
+              setActiveDocModal(null);
+            }
+          }
         }}
-        title="KusinApp Terms & Conditions"
-        message="By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational and meal-planning purposes only and are not a substitute for professional medical or dietary advice."
-        confirmText="I Agree to Terms"
-        cancelText="Close"
-      />
-
-      {/* Modal 2: Privacy Policy */}
-      <ConfirmationModal
-        isOpen={activeDocModal === "privacy"}
-        onClose={() => setActiveDocModal(null)}
-        onConfirm={() => {
-          setAgreedPrivacyDoc(true);
-          if (agreedTermsDoc) setFormError("");
-          setActiveDocModal(null);
-        }}
-        title="KusinApp Privacy Policy"
-        message="KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
-        confirmText="I Agree to Privacy Policy"
+        title={
+          activeDocModal === "privacy"
+            ? "KusinApp Privacy Policy (2 of 2)"
+            : "KusinApp Terms & Conditions (1 of 2)"
+        }
+        message={
+          activeDocModal === "privacy"
+            ? "KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
+            : "By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational and meal-planning purposes only and are not a substitute for professional medical or dietary advice."
+        }
+        confirmText={
+          activeDocModal === "terms" && !agreedPrivacyDoc
+            ? "I Agree • Next: Privacy Policy"
+            : activeDocModal === "privacy" && !agreedTermsDoc
+            ? "I Agree • Next: Terms"
+            : "I Agree"
+        }
         cancelText="Close"
       />
     </div>
