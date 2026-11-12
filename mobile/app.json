@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "KusinApp",
+    "slug": "kusinapp",
+    "scheme": "kusinapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f7f4ee"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.atelier101.kusinapp",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#f7f4ee"
+      },
+      "package": "com.atelier101.kusinapp",
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    }
+  }
+}
