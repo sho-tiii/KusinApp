@@ -670,6 +670,33 @@ export function ErrorBanner({ message }) {
   );
 }
 
+export function TitleWithLogo({ title }) {
+  return (
+    <Text style={{ fontSize: 24, fontWeight: "800", color: colors.ink, marginBottom: 6 }}>
+      {title}
+    </Text>
+  );
+}
+
+export function WarmGlow({ size = 320, style }) {
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        {
+          position: "absolute",
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: "#FEF3C7",
+          opacity: 0.65,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
 export const styles = StyleSheet.create({
   primaryBtn: {
     height: 54,

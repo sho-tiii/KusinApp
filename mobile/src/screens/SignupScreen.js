@@ -21,7 +21,6 @@ import {
   PrimaryButton,
   ScalePress,
   StepIndicator,
-  TitleWithLogo,
 } from "../components/ui";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import { getPasswordChecks, isValidEmail } from "../services/authService";

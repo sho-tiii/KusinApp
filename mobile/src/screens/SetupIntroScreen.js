@@ -15,7 +15,6 @@ import {
   LOGO_ICON,
   PrimaryButton,
   ScalePress,
-  WarmGlow,
 } from "../components/ui";
 
 const ITEMS = [
