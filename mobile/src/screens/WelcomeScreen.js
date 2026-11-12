@@ -147,23 +147,24 @@ export default function WelcomeScreen({ onLogin, onSignup }) {
 
         <View style={styles.imageArea}>
           <WarmGlow size={width * 0.88} />
-          <Animated.Image
-            source={item.image}
-            resizeMode="contain"
-            style={[
-              styles.image,
-              {
-                width: width * 0.68,
-                height: width * 0.68,
-                opacity: fade,
-                transform: [
-                  { translateX: imgShift },
-                  { translateY: floatY },
-                  { scale: imgScale },
-                ],
-              },
-            ]}
-          />
+          <Animated.View style={{ transform: [{ translateY: floatY }] }}>
+            <Animated.Image
+              source={item.image}
+              resizeMode="contain"
+              style={[
+                styles.image,
+                {
+                  width: width * 0.68,
+                  height: width * 0.68,
+                  opacity: fade,
+                  transform: [
+                    { translateX: imgShift },
+                    { scale: imgScale },
+                  ],
+                },
+              ]}
+            />
+          </Animated.View>
         </View>
 
         <Animated.Text style={[styles.caption, { opacity: fade }]}>

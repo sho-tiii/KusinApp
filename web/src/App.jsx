@@ -526,44 +526,6 @@ export default function App() {
         )}
 
         {/* =============================================================== */}
-        {/* CHOREOGRAPHED KUSINAPP ENTRANCE OVERLAY                         */}
-        {/* =============================================================== */}
-        {showSplash && (
-          <div
-            onClick={() => setShowSplash(false)}
-            className={`fixed inset-0 z-50 bg-white flex flex-col items-center justify-center cursor-pointer transition-all duration-400 ${
-              splashFading ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
-            }`}
-          >
-            <div className="relative flex flex-col items-center justify-center px-6">
-              {/* Warm Ambient Radial Aura */}
-              <div className="absolute w-72 h-72 rounded-full bg-amber-100/60 blur-xl pointer-events-none animate-pulse" />
-              <div className="absolute w-48 h-48 rounded-full bg-amber-200/45 pointer-events-none" />
-
-              {/* Stage 1: Emblem (Golden House + Steaming Pot + Chili + Leaves) */}
-              <img
-                src="/assets/splash-emblem.png"
-                alt="KusinApp Emblem"
-                className="relative w-52 h-auto object-contain animate-kusinapp-emblem"
-              />
-
-              {/* Stage 2: "KusinApp" Wordmark */}
-              <img
-                src="/assets/splash-wordmark.png"
-                alt="KusinApp"
-                className="relative w-56 h-auto object-contain -mt-1.5 animate-kusinapp-wordmark"
-              />
-
-              {/* Stage 3: Expanding Golden Accent Line + Tagline */}
-              <div className="relative w-12 h-0.5 rounded-full bg-amber-500 mt-3 mb-2 animate-kusinapp-line" />
-              <p className="relative text-xs font-semibold text-stone-600 tracking-[0.14em] animate-kusinapp-tagline">
-                Lasang Pinoy sa Bawat Luto.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* =============================================================== */}
         {/* NAV SECTION: HOME (AUTH + ONBOARDING + PROFILE)                 */}
         {/* =============================================================== */}
         {navSection === "home" && !currentUser && (

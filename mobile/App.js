@@ -213,20 +213,14 @@ function Root() {
 }
 
 /**
- * Choreographed Multi-Stage KusinApp Entrance Animation:
- * 1. Soft golden radial aura blooms & breathes behind the centerpiece.
- * 2. Emblem (Golden House + Steaming Pot + Chili + Leaves) springs in with tactile bounce & subtle tilt.
- * 3. Rising aroma wisps float gracefully above the rooftop pot.
- * 4. "KusinApp" Wordmark glides up & locks into place.
- * 5. Golden divider line expands outward & "Lasang Pinoy sa Bawat Luto." tagline reveals.
- * 6. Smooth cinematic zoom-lift exit into the Welcome screen.
+ * Choreographed Multi-Stage KusinApp Entrance Animation (Clean Logo Only, No Circle BG):
+ * 1. Emblem (Golden House + Steaming Pot + Chili + Leaves) springs in with tactile bounce & subtle tilt.
+ * 2. "KusinApp" Wordmark glides up & locks into place.
+ * 3. Golden divider line expands outward & "Lasang Pinoy sa Bawat Luto." tagline reveals.
+ * 4. Smooth cinematic zoom-lift exit into the Welcome screen.
  */
 function Splash({ ready, onDone }) {
-  // Stage 1: Warm Aura & Emblem
-  const auraScale = useRef(new Animated.Value(0.35)).current;
-  const auraOpacity = useRef(new Animated.Value(0)).current;
-  const auraPulse = useRef(new Animated.Value(1)).current;
-
+  // Stage 1: Emblem
   const emblemOpacity = useRef(new Animated.Value(0)).current;
   const emblemScale = useRef(new Animated.Value(0.45)).current;
   const emblemY = useRef(new Animated.Value(30)).current;
@@ -246,75 +240,11 @@ function Splash({ ready, onDone }) {
   // Stage 4: Exit transition
   const exitProgress = useRef(new Animated.Value(0)).current;
 
-  // Floating steam wisps
-  const steam1 = useRef(new Animated.Value(0)).current;
-  const steam2 = useRef(new Animated.Value(0)).current;
-  const steam3 = useRef(new Animated.Value(0)).current;
-
   const [minTimePassed, setMinTimePassed] = useState(false);
 
   useEffect(() => {
-    // Continuous gentle aura pulse + rising steam wisps
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(auraPulse, {
-          toValue: 1.08,
-          duration: 1300,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(auraPulse, {
-          toValue: 1.0,
-          duration: 1300,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    pulseLoop.start();
-
-    const makeSteam = (val, delay) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(val, {
-            toValue: 1,
-            duration: 1500,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(val, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-
-    const s1 = makeSteam(steam1, 200);
-    const s2 = makeSteam(steam2, 650);
-    const s3 = makeSteam(steam3, 1100);
-    s1.start();
-    s2.start();
-    s3.start();
-
-    // Main choreographed entrance sequence
     Animated.parallel([
-      // 1. Warm Aura bloom
-      Animated.timing(auraOpacity, {
-        toValue: 1,
-        duration: 520,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.spring(auraScale, {
-        toValue: 1,
-        friction: 6,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-
-      // 2. Emblem spring-in with playful tilt settle
+      // 1. Emblem spring-in with playful tilt settle
       Animated.timing(emblemOpacity, {
         toValue: 1,
         duration: 420,
@@ -348,7 +278,7 @@ function Splash({ ready, onDone }) {
         }),
       ]),
 
-      // 3. Wordmark ("KusinApp") staggered reveal at 320ms
+      // 2. Wordmark ("KusinApp") staggered reveal at 320ms
       Animated.sequence([
         Animated.delay(320),
         Animated.parallel([
@@ -373,7 +303,7 @@ function Splash({ ready, onDone }) {
         ]),
       ]),
 
-      // 4. Golden bar + Tagline reveal at 640ms
+      // 3. Golden bar + Tagline reveal at 640ms
       Animated.sequence([
         Animated.delay(640),
         Animated.parallel([
@@ -404,27 +334,15 @@ function Splash({ ready, onDone }) {
       ]),
     ]).start();
 
-    const t = setTimeout(() => setMinTimePassed(true), 2450);
-    return () => {
-      clearTimeout(t);
-      pulseLoop.stop();
-      s1.stop();
-      s2.stop();
-      s3.stop();
-    };
+    const t = setTimeout(() => setMinTimePassed(true), 2350);
+    return () => clearTimeout(t);
   }, [
-    auraOpacity,
-    auraPulse,
-    auraScale,
     emblemOpacity,
     emblemScale,
     emblemTilt,
     emblemY,
     lineOpacity,
     lineScaleX,
-    steam1,
-    steam2,
-    steam3,
     tagOpacity,
     tagY,
     wordOpacity,
@@ -460,36 +378,6 @@ function Splash({ ready, onDone }) {
     outputRange: ["0deg", "-5deg"],
   });
 
-  const renderSteamWisp = (animVal, offsetX, size) => {
-    const wispY = animVal.interpolate({
-      inputRange: [0, 1],
-      outputRange: [6, -26],
-    });
-    const wispOpacity = animVal.interpolate({
-      inputRange: [0, 0.35, 0.8, 1],
-      outputRange: [0, 0.65, 0.35, 0],
-    });
-    const wispScale = animVal.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.65, 1.25],
-    });
-    return (
-      <Animated.View
-        style={[
-          styles.steamWisp,
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            marginLeft: offsetX,
-            opacity: wispOpacity,
-            transform: [{ translateY: wispY }, { scale: wispScale }],
-          },
-        ]}
-      />
-    );
-  };
-
   return (
     <Pressable
       style={styles.splash}
@@ -504,29 +392,6 @@ function Splash({ ready, onDone }) {
           },
         ]}
       >
-        {/* Ambient Warm Radial Aura */}
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.auraOuter,
-            {
-              opacity: auraOpacity,
-              transform: [
-                { scale: Animated.multiply(auraScale, auraPulse) },
-              ],
-            },
-          ]}
-        >
-          <View style={styles.auraInner} />
-        </Animated.View>
-
-        {/* Rising Steam Wisps above the Emblem */}
-        <View style={styles.steamRow} pointerEvents="none">
-          {renderSteamWisp(steam1, -18, 9)}
-          {renderSteamWisp(steam2, 2, 12)}
-          {renderSteamWisp(steam3, 20, 8)}
-        </View>
-
         {/* Stage 1: Emblem (Golden House + Steaming Pot + Chili + Leaves) */}
         <Animated.View
           style={{
@@ -598,31 +463,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-  },
-  auraOuter: {
-    position: "absolute",
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: "rgba(254, 243, 199, 0.55)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  auraInner: {
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    backgroundColor: "rgba(253, 230, 138, 0.45)",
-  },
-  steamRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 18,
-    marginBottom: -6,
-  },
-  steamWisp: {
-    backgroundColor: "#F59E0B",
   },
   emblemImg: {
     width: 220,
