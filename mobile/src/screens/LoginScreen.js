@@ -95,9 +95,11 @@ export default function LoginScreen({ onBack, onSignup }) {
         >
           <BackButton onPress={onBack} />
           <FadeIn style={styles.header}>
-            <View style={styles.logoCard}>
-              <Image source={LOGO_ICON} style={styles.logo} resizeMode="contain" />
-            </View>
+            <Image
+              source={LOGO_ICON}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Welcome!</Text>
             <Text style={styles.subtitle}>
               Plan delicious homestyle Filipino{"\n"}meals every day
@@ -229,17 +231,8 @@ export default function LoginScreen({ onBack, onSignup }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", overflow: "hidden" },
   scroll: { paddingHorizontal: 26, paddingBottom: 32, paddingTop: 6 },
-  header: { alignItems: "center", marginBottom: 26 },
-  logoCard: {
-    width: 118,
-    height: 118,
-    borderRadius: 16,
-    backgroundColor: "#FAFAFA",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 14,
-  },
-  logo: { width: 92, height: 92 },
+  header: { alignItems: "center", marginBottom: 20 },
+  logo: { width: 136, height: 126, marginBottom: 12 },
   title: { fontSize: 28, fontWeight: "800", color: colors.ink },
   subtitle: {
     fontSize: 15,
