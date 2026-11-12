@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { calculateBMI, calculateBMR, saveUserOnboarding } from "../../services/authService";
 import ConfirmationModal from "../common/ConfirmationModal";
 
@@ -662,18 +662,19 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
         </div>
       )}
 
-      {/* Primary Continue Button & Step Footer */}
+      {/* Primary Continue Button & Footer */}
       <div className="mt-6">
         <button
           type="button"
           onClick={handleContinue}
           disabled={isSubmitting}
-          className="w-full h-13 px-5 bg-amber-500 hover:bg-amber-600 rounded-2xl text-base font-bold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
+          className="w-full h-14 py-3.5 px-6 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
+          style={{ minHeight: "54px" }}
         >
           {isSubmitting ? "Saving..." : "Continue →"}
         </button>
         <div className="text-center text-[11.5px] text-slate-400 mt-2.5">
-          Step {step} of 3 • You can customize your preferences anytime in Settings
+          You can customize your preferences anytime in Settings
         </div>
       </div>
 
@@ -721,7 +722,7 @@ export default function Onboarding({ user, initialData, onComplete, onCancel }) 
                 type="number"
                 value={editorText}
                 onChange={(e) => setEditorText(e.target.value)}
-                className="w-28 h-13 rounded-xl border-2 border-amber-500 text-center text-2xl font-extrabold text-slate-900 outline-none"
+                className="w-28 h-14 py-2 rounded-xl border-2 border-amber-500 text-center text-2xl font-extrabold text-slate-900 outline-none"
                 autoFocus
               />
               <span className="text-sm font-semibold text-slate-500">

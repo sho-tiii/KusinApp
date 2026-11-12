@@ -135,32 +135,16 @@ function Root() {
         initial={signupData}
         onBack={() => go("welcome")}
         onLogin={() => go("login")}
-        onNext={(d) => {
-          setSignupData(d);
-          signupInProgress.current = true;
-          go("verify");
-        }}
-      />
-    ),
-    verify: signupData ? (
-      <VerifyScreen
-        data={signupData}
-        onBack={() => {
-          signupInProgress.current = false;
-          go("signup");
-        }}
-        onEdit={() => {
-          signupInProgress.current = false;
-          go("signup");
-        }}
-        onVerified={({ profile: p }) => {
-          setProfile(p);
+        onNext={(res) => {
+          if (res?.profile) {
+            setProfile(res.profile);
+          }
           setSignupData(null);
           signupInProgress.current = false;
           go("setupIntro");
         }}
       />
-    ) : null,
+    ),
     setupIntro: (
       <SetupIntroScreen
         name={user?.displayName || profile?.displayName}

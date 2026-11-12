@@ -85,19 +85,39 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
   const [saving, setSaving] = useState(false);
   const [errorModal, setErrorModal] = useState(null);
 
-  // Start with NOTHING pre-selected so the user makes an intentional choice
+  // Start with NOTHING pre-selected except biological sex if already chosen at Sign Up
   const ob = profile?.onboarding;
+  const initialGender =
+    ob?.gender === "female" || ob?.gender === "male"
+      ? ob.gender
+      : profile?.gender === "female" || profile?.gender === "male"
+      ? profile.gender
+      : "";
+
   const [data, setData] = useState({
     household: ob?.household || "",
     goals: Array.isArray(ob?.goals) ? ob.goals : [],
     dietaryRestrictions: Array.isArray(ob?.dietaryRestrictions) ? ob.dietaryRestrictions : [],
     comorbidities: Array.isArray(ob?.comorbidities) ? ob.comorbidities : [],
-    gender: ob?.gender || "",
+    gender: initialGender,
     age: ob?.age ? String(ob.age) : "",
     heightCm: ob?.heightCm ? String(ob.heightCm) : "",
     weightKg: ob?.weightKg ? String(ob.weightKg) : "",
     weightGoal: ob?.weightGoal || "",
   });
+
+  // Ensure gender carries over if profile finishes loading asynchronously
+  useEffect(() => {
+    const carriedGender =
+      profile?.onboarding?.gender === "female" || profile?.onboarding?.gender === "male"
+        ? profile.onboarding.gender
+        : profile?.gender === "female" || profile?.gender === "male"
+        ? profile.gender
+        : "";
+    if (carriedGender) {
+      setData((d) => (d.gender ? d : { ...d, gender: carriedGender }));
+    }
+  }, [profile]);
 
   const set = (patch) => setData((d) => ({ ...d, ...patch }));
 
@@ -189,9 +209,9 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
   };
 
   const footers = [
-    "Step 1 of 3 • You can update this anytime in Settings",
-    "Step 2 of 3 • You can customize your preferences anytime in Settings",
-    "Step 3 of 3 • You can customize your preferences anytime in Settings",
+    "You can update this anytime in Settings",
+    "You can customize your preferences anytime in Settings",
+    "You can customize your preferences anytime in Settings",
   ];
 
   return (

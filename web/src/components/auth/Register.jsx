@@ -1,13 +1,14 @@
-import React, { useState } from "react";
-import {
-  registerUser,
-  loginWithGoogle,
-  getPasswordChecks,
-  isValidEmail,
-} from "../../services/authService";
+import React, { useMemo, useState } from "react";
+import { registerUser, loginWithGoogle } from "../../services/authService";
 import PasswordInput from "../common/PasswordInput";
 import Select from "../common/Select";
 import ConfirmationModal from "../common/ConfirmationModal";
+
+const GENDER_OPTIONS = [
+  { value: "female", label: "Female", description: "Used for baseline BMR & calorie calculations" },
+  { value: "male", label: "Male", description: "Used for baseline BMR & calorie calculations" },
+  { value: "other", label: "Prefer not to say", description: "Standard average calorie baseline" },
+];
 
 const RULES = [
   ["length", "8+ characters"],
@@ -17,15 +18,24 @@ const RULES = [
   ["symbol", "A symbol"],
 ];
 
-const GENDER_OPTIONS = [
-  { value: "female", label: "Female", description: "Used for baseline BMR & calorie calculations" },
-  { value: "male", label: "Male", description: "Used for baseline BMR & calorie calculations" },
-  { value: "other", label: "Prefer not to say", description: "Standard average calorie baseline" },
-];
+function getPasswordChecks(pw = "") {
+  return {
+    length: pw.length >= 8,
+    upper: /[A-Z]/.test(pw),
+    lower: /[a-z]/.test(pw),
+    number: /\d/.test(pw),
+    symbol: /[^A-Za-z0-9]/.test(pw),
+  };
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+}
 
 /**
- * User Registration Screen (Register.jsx) — Matches image.png buttons, no KusinApp logo inside card,
- * and includes mandatory Terms & Conditions / Privacy Policy checkbox before creating account.
+ * User Registration Screen (Register.jsx) — Matches KusinApp Web & Mobile UI
+ * without extra inner KusinApp logo, with tall rounded-full buttons and mandatory
+ * Terms & Conditions + Privacy Policy dual-agreement check.
  */
 export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   const [displayName, setDisplayName] = useState("");
@@ -33,13 +43,37 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreedTerms, setAgreedTerms] = useState(false);
-  const [termsModalOpen, setTermsModalOpen] = useState(false);
+
+  // Require reading & agreeing to BOTH Terms & Conditions and Privacy Policy
+  const [agreedTermsDoc, setAgreedTermsDoc] = useState(false);
+  const [agreedPrivacyDoc, setAgreedPrivacyDoc] = useState(false);
+  const [activeDocModal, setActiveDocModal] = useState(null); // "terms" | "privacy" | null
 
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const checks = getPasswordChecks(password);
+  const checks = useMemo(() => getPasswordChecks(password), [password]);
+  const agreedBoth = agreedTermsDoc && agreedPrivacyDoc;
+
+  const handleCheckboxClick = (e) => {
+    e.preventDefault();
+    if (agreedBoth) {
+      setAgreedTermsDoc(false);
+      setAgreedPrivacyDoc(false);
+      return;
+    }
+    if (!agreedTermsDoc) {
+      setFormError(
+        "Please read and click 'I Agree' on both the Terms & Conditions and Privacy Policy first."
+      );
+      setActiveDocModal("terms");
+      return;
+    }
+    if (!agreedPrivacyDoc) {
+      setFormError("Please also read and click 'I Agree' on the Privacy Policy.");
+      setActiveDocModal("privacy");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,15 +98,17 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
       setFormError("Passwords do not match.");
       return;
     }
-    if (!agreedTerms) {
-      setFormError("Please agree to the KusinApp Terms and Conditions and Privacy Policy before creating your account.");
+    if (!agreedBoth) {
+      setFormError(
+        "Please read and agree to both the KusinApp Terms & Conditions and Privacy Policy before creating your account."
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
       const user = await registerUser(mail, password, name, gender);
-      if (typeof onRegisterSuccess === "function") onRegisterSuccess(user, mail);
+      if (typeof onRegisterSuccess === "function") onRegisterSuccess(user, mail, false, gender);
     } catch (err) {
       setFormError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -82,14 +118,16 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
 
   const handleGoogleSignUp = async () => {
     setFormError("");
-    if (!agreedTerms) {
-      setFormError("Please check the Terms and Conditions box first before signing up with Google.");
+    if (!agreedBoth) {
+      setFormError(
+        "Please read and agree to both the Terms & Conditions and Privacy Policy first before signing up with Google."
+      );
       return;
     }
     setIsSubmitting(true);
     try {
       const user = await loginWithGoogle();
-      if (typeof onRegisterSuccess === "function") onRegisterSuccess(user, user?.email, true);
+      if (typeof onRegisterSuccess === "function") onRegisterSuccess(user, user?.email, true, gender);
     } catch (err) {
       setFormError(err.message || "Failed to sign up with Google.");
     } finally {
@@ -129,7 +167,8 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
           <input
             id="register-name"
             type="text"
-            className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50/80 focus:bg-white text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+            className="w-full h-12 py-3.5 px-4 rounded-2xl border border-slate-200 bg-slate-50/80 focus:bg-white text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+            style={{ minHeight: "50px" }}
             placeholder="Juan Dela Cruz"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -139,12 +178,13 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span
+          <label
             id="register-gender-label"
+            htmlFor="register-gender"
             className="text-xs font-extrabold tracking-wider uppercase text-slate-900"
           >
-            Biological Sex (Optional)
-          </span>
+            Biological Sex <span className="text-slate-400 font-semibold">(Optional)</span>
+          </label>
           <Select
             id="register-gender"
             ariaLabelledBy="register-gender-label"
@@ -166,7 +206,8 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
           <input
             id="register-email"
             type="email"
-            className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50/80 focus:bg-white text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+            className="w-full h-12 py-3.5 px-4 rounded-2xl border border-slate-200 bg-slate-50/80 focus:bg-white text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+            style={{ minHeight: "50px" }}
             placeholder="juan@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -242,48 +283,59 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
           />
         </div>
 
-        {/* Mandatory Terms & Conditions Checkbox */}
+        {/* Mandatory Terms & Conditions + Privacy Policy Dual-Read Checkbox */}
         <div className="flex items-start gap-2.5 mt-1 mb-1">
-          <input
-            id="register-terms"
-            type="checkbox"
-            className="w-4 h-4 mt-0.5 accent-amber-500 cursor-pointer rounded shrink-0"
-            checked={agreedTerms}
-            onChange={(e) => setAgreedTerms(e.target.checked)}
-          />
-          <label
-            htmlFor="register-terms"
-            className="text-xs text-slate-600 leading-relaxed select-none cursor-pointer"
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={agreedBoth}
+            onClick={handleCheckboxClick}
+            className={`w-5 h-5 mt-0.5 rounded-md border flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+              agreedBoth
+                ? "bg-amber-500 border-amber-500 text-white"
+                : "bg-white border-slate-300 hover:border-amber-500"
+            }`}
           >
-            I agree to the KusinApp{" "}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setTermsModalOpen(true);
-              }}
-              className="border-0 bg-transparent p-0 font-extrabold text-amber-700 hover:underline cursor-pointer"
-            >
-              Terms & Conditions
-            </button>{" "}
-            and{" "}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setTermsModalOpen(true);
-              }}
-              className="border-0 bg-transparent p-0 font-extrabold text-amber-700 hover:underline cursor-pointer"
-            >
-              Privacy Policy
-            </button>
-            .
-          </label>
+            {agreedBoth && (
+              <span className="text-xs font-extrabold leading-none">✓</span>
+            )}
+          </button>
+          <div className="text-xs text-slate-600 leading-relaxed select-none">
+            <span>
+              I agree to the KusinApp{" "}
+              <button
+                type="button"
+                onClick={() => setActiveDocModal("terms")}
+                className={`border-0 bg-transparent p-0 font-extrabold hover:underline cursor-pointer ${
+                  agreedTermsDoc ? "text-emerald-700" : "text-amber-700"
+                }`}
+              >
+                Terms &amp; Conditions{agreedTermsDoc ? " ✓" : ""}
+              </button>{" "}
+              and{" "}
+              <button
+                type="button"
+                onClick={() => setActiveDocModal("privacy")}
+                className={`border-0 bg-transparent p-0 font-extrabold hover:underline cursor-pointer ${
+                  agreedPrivacyDoc ? "text-emerald-700" : "text-amber-700"
+                }`}
+              >
+                Privacy Policy{agreedPrivacyDoc ? " ✓" : ""}
+              </button>
+              .
+            </span>
+            {!agreedBoth && (
+              <div className="text-[11px] text-slate-400 mt-0.5">
+                Click and agree to both links above to check this box.
+              </div>
+            )}
+          </div>
         </div>
 
         <button
           type="submit"
-          className="w-full h-13 mt-1 px-6 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2.5 transition-all disabled:opacity-55 cursor-pointer"
+          className="w-full h-14 py-3.5 mt-1 px-6 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2.5 transition-all disabled:opacity-55 cursor-pointer"
+          style={{ minHeight: "54px" }}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -311,7 +363,8 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
 
       <button
         type="button"
-        className="w-full h-13 px-6 bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 hover:border-slate-300 rounded-full text-[0.95rem] font-extrabold flex items-center justify-center gap-3 transition-all disabled:opacity-55 cursor-pointer"
+        className="w-full h-14 py-3.5 px-6 bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 hover:border-slate-300 rounded-full text-[0.95rem] font-extrabold flex items-center justify-center gap-3 transition-all disabled:opacity-55 cursor-pointer"
+        style={{ minHeight: "54px" }}
         onClick={handleGoogleSignUp}
         disabled={isSubmitting}
       >
@@ -337,16 +390,33 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
         </p>
       )}
 
+      {/* Modal 1: Terms & Conditions */}
       <ConfirmationModal
-        isOpen={termsModalOpen}
-        onClose={() => setTermsModalOpen(false)}
+        isOpen={activeDocModal === "terms"}
+        onClose={() => setActiveDocModal(null)}
         onConfirm={() => {
-          setAgreedTerms(true);
-          setTermsModalOpen(false);
+          setAgreedTermsDoc(true);
+          if (agreedPrivacyDoc) setFormError("");
+          setActiveDocModal(null);
         }}
-        title="Terms & Conditions and Privacy Policy"
-        message="By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform responsibly. Your health metrics (BMI, BMR, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended recipes and nutritional targets. Note: KusinApp nutritional estimates are a general guide and not a substitute for professional medical advice."
-        confirmText="I Agree"
+        title="KusinApp Terms & Conditions"
+        message="By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational and meal-planning purposes only and are not a substitute for professional medical or dietary advice."
+        confirmText="I Agree to Terms"
+        cancelText="Close"
+      />
+
+      {/* Modal 2: Privacy Policy */}
+      <ConfirmationModal
+        isOpen={activeDocModal === "privacy"}
+        onClose={() => setActiveDocModal(null)}
+        onConfirm={() => {
+          setAgreedPrivacyDoc(true);
+          if (agreedTermsDoc) setFormError("");
+          setActiveDocModal(null);
+        }}
+        title="KusinApp Privacy Policy"
+        message="KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
+        confirmText="I Agree to Privacy Policy"
         cancelText="Close"
       />
     </div>

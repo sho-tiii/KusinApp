@@ -142,13 +142,6 @@ export async function registerUser(email, password, displayName, gender = "", ro
       displayName: trimmedName,
     });
 
-    // Send standard Firebase Email Verification Link
-    try {
-      await sendEmailVerification(user);
-    } catch (verifyErr) {
-      console.warn("Email verification link notice:", verifyErr?.message);
-    }
-
     const userRef = ref(db, `users/${user.uid}`);
     await set(userRef, {
       uid: user.uid,

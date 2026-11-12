@@ -22,10 +22,13 @@ import {
   PrimaryButton,
   ScalePress,
   SelectModal,
-  StepIndicator,
 } from "../components/ui";
 import GoogleSignInButton from "../components/GoogleSignInButton";
-import { getPasswordChecks, isValidEmail } from "../services/authService";
+import {
+  getPasswordChecks,
+  isValidEmail,
+  registerMobileUser,
+} from "../services/authService";
 
 const RULES = [
   ["length", "8+ characters"],
@@ -48,14 +51,38 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
   const [email, setEmail] = useState(initial?.email || "");
   const [password, setPassword] = useState(initial?.password || "");
   const [confirm, setConfirm] = useState(initial?.password || "");
-  const [agreedTerms, setAgreedTerms] = useState(false);
-  const [termsModal, setTermsModal] = useState(false);
+
+  // Require user to open, read, and agree to BOTH Terms & Conditions and Privacy Policy
+  const [agreedTermsDoc, setAgreedTermsDoc] = useState(false);
+  const [agreedPrivacyDoc, setAgreedPrivacyDoc] = useState(false);
+  const [activeDocModal, setActiveDocModal] = useState(null); // "terms" | "privacy" | null
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const checks = getPasswordChecks(password);
 
+  const agreedBoth = agreedTermsDoc && agreedPrivacyDoc;
   const selectedGenderObj = GENDER_OPTIONS.find((g) => g.value === gender);
 
-  const submit = () => {
+  const handleCheckboxPress = () => {
+    if (agreedBoth) {
+      // Allow unchecking if already agreed to both
+      setAgreedTermsDoc(false);
+      setAgreedPrivacyDoc(false);
+      return;
+    }
+    if (!agreedTermsDoc) {
+      setError("Please read and agree to both the Terms & Conditions and Privacy Policy to check this box.");
+      setActiveDocModal("terms");
+      return;
+    }
+    if (!agreedPrivacyDoc) {
+      setError("Please also read and agree to the Privacy Policy to check this box.");
+      setActiveDocModal("privacy");
+    }
+  };
+
+  const submit = async () => {
     setError("");
     if (name.trim().length < 2) return setError("Please enter your full name.");
     if (!isValidEmail(email)) return setError("Please enter a valid email address.");
@@ -63,12 +90,26 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
       return setError("Your password doesn't meet all the requirements yet.");
     }
     if (password !== confirm) return setError("Passwords do not match.");
-    if (!agreedTerms) {
+    if (!agreedBoth) {
       return setError(
-        "Please agree to the KusinApp Terms & Conditions and Privacy Policy before creating your account."
+        "Please read and agree to both the Terms & Conditions and Privacy Policy before creating your account."
       );
     }
-    onNext({ name: name.trim(), gender, email: email.trim(), password });
+
+    setLoading(true);
+    try {
+      const res = await registerMobileUser(
+        email.trim(),
+        password,
+        name.trim(),
+        gender
+      );
+      onNext && onNext(res);
+    } catch (e) {
+      setError(e.message || "Failed to create account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,7 +125,6 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
         >
           <View style={styles.topRow}>
             <BackButton onPress={onBack} />
-            <StepIndicator step={1} total={3} />
           </View>
 
           <FadeIn>
@@ -156,44 +196,58 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               error={confirm.length > 0 && confirm !== password}
             />
 
-            {/* Terms & Conditions and Privacy Policy Checkbox */}
+            {/* Terms & Conditions and Privacy Policy Checkbox (Must read & agree to both) */}
             <View style={styles.termsRow}>
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => setAgreedTerms((prev) => !prev)}
+                onPress={handleCheckboxPress}
                 style={[
                   styles.checkbox,
-                  agreedTerms && styles.checkboxChecked,
+                  agreedBoth && styles.checkboxChecked,
                 ]}
               >
-                {agreedTerms ? (
+                {agreedBoth ? (
                   <Text style={styles.checkboxMark}>✓</Text>
                 ) : null}
               </TouchableOpacity>
-              <Text style={styles.termsText}>
-                I agree to the KusinApp{" "}
-                <Text
-                  style={styles.termsLink}
-                  onPress={() => setTermsModal(true)}
-                >
-                  Terms & Conditions
-                </Text>{" "}
-                and{" "}
-                <Text
-                  style={styles.termsLink}
-                  onPress={() => setTermsModal(true)}
-                >
-                  Privacy Policy
+              <View style={{ flex: 1 }}>
+                <Text style={styles.termsText}>
+                  I agree to the KusinApp{" "}
+                  <Text
+                    style={[
+                      styles.termsLink,
+                      agreedTermsDoc && { color: colors.green },
+                    ]}
+                    onPress={() => setActiveDocModal("terms")}
+                  >
+                    Terms & Conditions{agreedTermsDoc ? " ✓" : ""}
+                  </Text>{" "}
+                  and{" "}
+                  <Text
+                    style={[
+                      styles.termsLink,
+                      agreedPrivacyDoc && { color: colors.green },
+                    ]}
+                    onPress={() => setActiveDocModal("privacy")}
+                  >
+                    Privacy Policy{agreedPrivacyDoc ? " ✓" : ""}
+                  </Text>
+                  .
                 </Text>
-                .
-              </Text>
+                {!agreedBoth && (
+                  <Text style={styles.termsHint}>
+                    Tap and agree to both links above to enable this checkbox.
+                  </Text>
+                )}
+              </View>
             </View>
           </FadeIn>
 
           <FadeIn delay={170}>
             <PrimaryButton
-              title="Create Account & Send Link"
+              title="Sign Up"
               onPress={submit}
+              loading={loading}
               style={{ marginTop: 6 }}
             />
 
@@ -202,9 +256,9 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               title="Sign up with Google"
               onError={setError}
               beforePress={() => {
-                if (!agreedTerms) {
+                if (!agreedBoth) {
                   setError(
-                    "Please check the Terms & Conditions and Privacy Policy box first before signing up with Google."
+                    "Please read and agree to both the Terms & Conditions and Privacy Policy first before signing up with Google."
                   );
                   return false;
                 }
@@ -232,16 +286,33 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
         onChange={setGender}
       />
 
+      {/* Modal 1: Terms & Conditions */}
       <ConfirmationModal
-        visible={termsModal}
-        onClose={() => setTermsModal(false)}
+        visible={activeDocModal === "terms"}
+        onClose={() => setActiveDocModal(null)}
         onConfirm={() => {
-          setAgreedTerms(true);
-          setTermsModal(false);
+          setAgreedTermsDoc(true);
+          if (agreedPrivacyDoc) setError("");
+          setActiveDocModal(null);
         }}
-        title="Terms & Conditions and Privacy Policy"
-        message="By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform responsibly. Your health metrics (BMI, BMR, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended recipes and nutritional targets. Note: KusinApp nutritional estimates are a general guide and not a substitute for professional medical advice."
-        confirmText="I Agree"
+        title="KusinApp Terms & Conditions"
+        message="By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational and meal-planning purposes only and are not a substitute for professional medical or dietary advice."
+        confirmText="I Agree to Terms"
+        cancelText="Close"
+      />
+
+      {/* Modal 2: Privacy Policy */}
+      <ConfirmationModal
+        visible={activeDocModal === "privacy"}
+        onClose={() => setActiveDocModal(null)}
+        onConfirm={() => {
+          setAgreedPrivacyDoc(true);
+          if (agreedTermsDoc) setError("");
+          setActiveDocModal(null);
+        }}
+        title="KusinApp Privacy Policy"
+        message="KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
+        confirmText="I Agree to Privacy Policy"
         cancelText="Close"
       />
     </SafeAreaView>
@@ -399,10 +470,14 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   termsText: {
-    flex: 1,
     fontSize: 12.5,
     color: colors.inkMuted,
     lineHeight: 19,
+  },
+  termsHint: {
+    fontSize: 11,
+    color: colors.inkSubtle,
+    marginTop: 2,
   },
   termsLink: {
     color: colors.primaryDark,

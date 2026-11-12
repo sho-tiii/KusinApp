@@ -156,7 +156,8 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
 
                 <button
                   type="submit"
-                  className="w-full h-13 px-4 bg-amber-500 hover:bg-amber-600 rounded-2xl text-base font-bold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
+                  className="w-full h-14 py-3.5 px-6 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
+                  style={{ minHeight: "54px" }}
                   disabled={isSubmitting}
                 >
                   {isSubmitting && (

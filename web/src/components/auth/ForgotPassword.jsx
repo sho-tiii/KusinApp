@@ -194,7 +194,8 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
           <input
             id="reset-email"
             type="email"
-            className="w-full h-12 px-3.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+            className="w-full h-12 py-3.5 px-4 bg-slate-50/80 focus:bg-white border border-slate-200 rounded-2xl text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+            style={{ minHeight: "50px" }}
             placeholder={isAdminPortal ? "admin@kusinapp.ph" : "juan@example.com"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -205,7 +206,8 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
 
         <button
           type="submit"
-          className="w-full h-12 px-4 bg-amber-500 hover:bg-amber-600 rounded-2xl text-[0.95rem] font-bold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
+          className="w-full h-14 py-3.5 px-6 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
+          style={{ minHeight: "54px" }}
           disabled={isLoading}
         >
           {isLoading && (
@@ -214,7 +216,7 @@ export default function ForgotPassword({ onBackToLogin, isAdminPortal = false })
               aria-hidden="true"
             />
           )}
-          {isLoading ? "Sending link..." : "Send Reset Link"}
+          {isLoading ? "Sending link..." : "Send Reset Link →"}
         </button>
       </form>
 

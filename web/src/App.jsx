@@ -616,13 +616,22 @@ export default function App() {
               {activeTab === "register" ? (
                 <Register
                   onNavigateToLogin={() => setActiveTab("login")}
-                  onRegisterSuccess={(_user, registeredEmail, isGoogle) => {
-                    if (isGoogle) {
-                      setFlowStep("setupIntro");
-                    } else {
-                      setPendingVerifyEmail(registeredEmail || "");
-                      setFlowStep("verifyLink");
+                  onRegisterSuccess={async (user, _registeredEmail, _isGoogle, selectedGender) => {
+                    if (selectedGender) {
+                      setUserProfile((prev) => ({
+                        ...(prev || {}),
+                        gender: selectedGender,
+                      }));
                     }
+                    try {
+                      if (user?.uid) {
+                        const p = await getUserProfile(user.uid);
+                        if (p) setUserProfile(p);
+                      }
+                    } catch (_e) {
+                      // non-blocking
+                    }
+                    setFlowStep("setupIntro");
                   }}
                 />
               ) : activeTab === "forgot" ? (
@@ -645,73 +654,6 @@ export default function App() {
             <div className="text-sm font-semibold text-slate-500">
               Syncing your KusinApp kitchen profile…
             </div>
-          </div>
-        )}
-
-        {/* =============================================================== */}
-        {/* STEP A: CHECK YOUR EMAIL LINK (Matches Mobile VerifyScreen)     */}
-        {/* =============================================================== */}
-        {navSection === "home" && currentUser && !isLoadingProfile && flowStep === "verifyLink" && (
-          <div className="w-full max-w-[460px] bg-white border border-slate-200 rounded-3xl shadow-card p-6 sm:p-8 text-center">
-            <div className="w-18 h-18 rounded-full bg-indigo-50 grid place-items-center mx-auto mb-4 relative">
-              <div className="w-13 h-13 rounded-full bg-amber-200 grid place-items-center text-amber-800">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
-              </div>
-              <span className="absolute top-0 right-0 w-5 h-5 rounded-full bg-lime-600 text-white text-[10px] font-extrabold grid place-items-center border-2 border-white">
-                ✓
-              </span>
-            </div>
-
-            <h1 className="text-2xl font-extrabold text-slate-900">Check Your Email</h1>
-            <p className="text-sm text-slate-500 mt-2">
-              We sent a verification link to your email address:
-            </p>
-            <div className="text-base font-extrabold text-slate-900 mt-1">
-              {pendingVerifyEmail || currentUser.email}
-            </div>
-
-            <div className="text-left p-4 my-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs text-slate-600">
-              <div className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-extrabold text-[11px] grid place-items-center shrink-0">
-                  1
-                </span>
-                <span>Open the email from KusinApp in your inbox or spam folder.</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-extrabold text-[11px] grid place-items-center shrink-0">
-                  2
-                </span>
-                <span>
-                  Click the verification link inside the email to activate your account, then click Continue below.
-                </span>
-              </div>
-            </div>
-
-            {verifyNotice && (
-              <div className="px-3.5 py-2.5 mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
-                {verifyNotice}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setFlowStep("setupIntro")}
-              className="w-full h-13 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] transition-all cursor-pointer"
-            >
-              Continue to Kusina Setup →
-            </button>
-
-            <button
-              type="button"
-              onClick={handleResendVerification}
-              disabled={resendingVerify}
-              className="mt-4 border-0 bg-transparent text-xs font-bold text-amber-700 hover:underline cursor-pointer disabled:opacity-50"
-            >
-              {resendingVerify ? "Sending link..." : "Didn't receive the email? Resend link"}
-            </button>
           </div>
         )}
 
@@ -774,7 +716,8 @@ export default function App() {
             <button
               type="button"
               onClick={() => setFlowStep("onboarding")}
-              className="w-full h-13 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] transition-all cursor-pointer"
+              className="w-full h-14 py-3.5 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] transition-all cursor-pointer"
+              style={{ minHeight: "54px" }}
             >
               START
             </button>
@@ -795,7 +738,10 @@ export default function App() {
           <div className="w-full max-w-[520px] bg-white border border-slate-200 rounded-3xl shadow-card p-6 sm:p-8">
             <Onboarding
               user={currentUser}
-              initialData={ob}
+              initialData={{
+                ...ob,
+                gender: ob?.gender || userProfile?.gender || "",
+              }}
               onComplete={async () => {
                 await refreshProfile();
                 setFlowStep("allSet");
@@ -836,7 +782,8 @@ export default function App() {
             <button
               type="button"
               onClick={() => setFlowStep("home")}
-              className="w-full h-13 mt-8 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full h-14 py-3.5 mt-8 bg-amber-500 hover:bg-amber-600 rounded-full text-base font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
+              style={{ minHeight: "54px" }}
             >
               Go to Homepage →
             </button>

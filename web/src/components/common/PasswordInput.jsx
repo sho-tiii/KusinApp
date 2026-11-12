@@ -19,11 +19,12 @@ export default function PasswordInput({
       <input
         id={id}
         type={visible ? "text" : "password"}
-        className={`w-full h-12 pl-4 pr-11 rounded-2xl border text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${
+        className={`w-full h-12 py-3.5 pl-4 pr-11 rounded-2xl border text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${
           invalid
             ? "border-red-600 bg-red-50/40 focus:border-red-600 focus:ring-2 focus:ring-red-500/20"
             : "border-slate-200 bg-slate-50/80 hover:border-slate-300 focus:bg-white focus:border-amber-500 focus:shadow-amber-ring"
         }`}
+        style={{ minHeight: "50px" }}
         placeholder={placeholder}
         value={value}
         onChange={onChange}

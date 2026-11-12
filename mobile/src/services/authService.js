@@ -157,13 +157,6 @@ export async function registerMobileUser(email, password, displayName, gender) {
 
     await updateProfile(user, { displayName: trimmedName });
 
-    // Dispatch standard Firebase email verification link immediately
-    try {
-      await sendEmailVerification(user);
-    } catch (_verifyErr) {
-      // Non-blocking if rate-limited
-    }
-
     const profile = {
       uid: user.uid,
       displayName: trimmedName,
