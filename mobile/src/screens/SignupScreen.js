@@ -7,11 +7,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { colors } from "../theme";
 import {
   BackButton,
+  ConfirmationModal,
   Divider,
   ErrorBanner,
   FadeIn,
@@ -46,6 +48,8 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
   const [email, setEmail] = useState(initial?.email || "");
   const [password, setPassword] = useState(initial?.password || "");
   const [confirm, setConfirm] = useState(initial?.password || "");
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [termsModal, setTermsModal] = useState(false);
   const [error, setError] = useState("");
   const checks = getPasswordChecks(password);
 
@@ -59,6 +63,11 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
       return setError("Your password doesn't meet all the requirements yet.");
     }
     if (password !== confirm) return setError("Passwords do not match.");
+    if (!agreedTerms) {
+      return setError(
+        "Please agree to the KusinApp Terms & Conditions and Privacy Policy before creating your account."
+      );
+    }
     onNext({ name: name.trim(), gender, email: email.trim(), password });
   };
 
@@ -146,13 +155,46 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               secure
               error={confirm.length > 0 && confirm !== password}
             />
+
+            {/* Terms & Conditions and Privacy Policy Checkbox */}
+            <View style={styles.termsRow}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setAgreedTerms((prev) => !prev)}
+                style={[
+                  styles.checkbox,
+                  agreedTerms && styles.checkboxChecked,
+                ]}
+              >
+                {agreedTerms ? (
+                  <Text style={styles.checkboxMark}>✓</Text>
+                ) : null}
+              </TouchableOpacity>
+              <Text style={styles.termsText}>
+                I agree to the KusinApp{" "}
+                <Text
+                  style={styles.termsLink}
+                  onPress={() => setTermsModal(true)}
+                >
+                  Terms & Conditions
+                </Text>{" "}
+                and{" "}
+                <Text
+                  style={styles.termsLink}
+                  onPress={() => setTermsModal(true)}
+                >
+                  Privacy Policy
+                </Text>
+                .
+              </Text>
+            </View>
           </FadeIn>
 
           <FadeIn delay={170}>
             <PrimaryButton
               title="Create Account & Send Link"
               onPress={submit}
-              style={{ marginTop: 4 }}
+              style={{ marginTop: 6 }}
             />
 
             <Divider label={"OR\nCONTINUE\nWITH"} />
@@ -175,6 +217,19 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
         options={GENDER_OPTIONS}
         value={gender}
         onChange={setGender}
+      />
+
+      <ConfirmationModal
+        visible={termsModal}
+        onClose={() => setTermsModal(false)}
+        onConfirm={() => {
+          setAgreedTerms(true);
+          setTermsModal(false);
+        }}
+        title="Terms & Conditions and Privacy Policy"
+        message="By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform responsibly. Your health metrics (BMI, BMR, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended recipes and nutritional targets. Note: KusinApp nutritional estimates are a general guide and not a substitute for professional medical advice."
+        confirmText="I Agree"
+        cancelText="Close"
       />
     </SafeAreaView>
   );
@@ -303,6 +358,44 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   ruleText: { fontSize: 12.5, color: colors.inkMuted },
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 10,
+    marginTop: 2,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+    marginTop: 1,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxMark: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  termsText: {
+    flex: 1,
+    fontSize: 12.5,
+    color: colors.inkMuted,
+    lineHeight: 19,
+  },
+  termsLink: {
+    color: colors.primaryDark,
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
   link: { color: colors.primaryDark, fontWeight: "700", fontSize: 13 },
   muted: { color: colors.inkMuted, fontSize: 13 },
   bottomRow: { flexDirection: "row", justifyContent: "center", marginTop: 18 },

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 /**
- * Password input with show/hide toggle, styled with Tailwind CSS.
+ * Password input with show/hide toggle, styled with Tailwind CSS matching the KusinApp prototype.
  */
 export default function PasswordInput({
   id,
@@ -19,10 +19,10 @@ export default function PasswordInput({
       <input
         id={id}
         type={visible ? "text" : "password"}
-        className={`w-full h-11 pl-3.5 pr-11 rounded-lg border text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${
+        className={`w-full h-12 pl-4 pr-11 rounded-2xl border text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${
           invalid
             ? "border-red-600 bg-red-50/40 focus:border-red-600 focus:ring-2 focus:ring-red-500/20"
-            : "border-slate-300 bg-white hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring"
+            : "border-slate-200 bg-slate-50/80 hover:border-slate-300 focus:bg-white focus:border-amber-500 focus:shadow-amber-ring"
         }`}
         placeholder={placeholder}
         value={value}
@@ -33,7 +33,7 @@ export default function PasswordInput({
       />
       <button
         type="button"
-        className="absolute right-1.5 grid place-items-center w-8 h-8 rounded-md bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-900/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute right-2.5 grid place-items-center w-8 h-8 rounded-full bg-transparent text-slate-400 hover:text-slate-700 hover:bg-slate-900/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
