@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Reusable Confirmation Modal styled to match the unified KusinApp mobile & web design system.
+ * Rendered via createPortal at document.body so the backdrop covers the full viewport window.
  */
 export default function ConfirmationModal({
   isOpen,
@@ -35,7 +37,12 @@ export default function ConfirmationModal({
     };
   }, [isOpen, isLoading, onClose]);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const getConfirmButtonClasses = () => {
     switch (variant) {
@@ -48,16 +55,16 @@ export default function ConfirmationModal({
     }
   };
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in"
       onClick={() => {
         if (!isLoading && onClose) onClose();
       }}
       role="presentation"
     >
       <div
-        className={`w-full ${maxWidth} bg-white border border-slate-200 rounded-3xl shadow-modal p-6 sm:p-7 flex flex-col gap-3 animate-scale-in max-h-[90vh] overflow-y-auto`}
+        className={`w-full ${maxWidth} bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-7 flex flex-col gap-3 animate-scale-in max-h-[90vh] overflow-y-auto`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="k-popup-title"
@@ -140,4 +147,8 @@ export default function ConfirmationModal({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }
