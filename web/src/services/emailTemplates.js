@@ -77,19 +77,19 @@ export function getWelcomeEmailHtml({ displayName = "Chef" }) {
               <!-- Feature Highlights -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 20px 0; background-color: #f8fafc; border: 1px solid #eaecf0; border-radius: 12px; padding: 16px 20px;">
                 <tr>
-                  <td style="padding: 8px 0; vertical-align: top; width: 26px; color: #f59e0b; font-size: 16px; font-weight: bold;">🍲</td>
+                  <td style="padding: 8px 0; vertical-align: top; width: 22px; color: #f59e0b; font-size: 16px; font-weight: bold;">•</td>
                   <td style="padding: 8px 0; font-size: 14px; color: #344054;">
                     <strong style="color: #101828;">Health-Tailored Recipes:</strong> Customized Filipino dishes aligned with your BMI, BMR, and dietary goals.
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; vertical-align: top; width: 26px; color: #f59e0b; font-size: 16px; font-weight: bold;">🛡️</td>
+                  <td style="padding: 8px 0; vertical-align: top; width: 22px; color: #f59e0b; font-size: 16px; font-weight: bold;">•</td>
                   <td style="padding: 8px 0; font-size: 14px; color: #344054;">
-                    <strong style="color: #101828;">Dietary Restrictions:</strong> Automated ingredient alerts for hypertension (low sodium), diabetes, and acid reflux.
+                    <strong style="color: #101828;">Dietary Restrictions:</strong> Automated ingredient alerts for hypertension (low sodium), diabetes, allergies, and acid reflux.
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px 0; vertical-align: top; width: 26px; color: #f59e0b; font-size: 16px; font-weight: bold;">🛒</td>
+                  <td style="padding: 8px 0; vertical-align: top; width: 22px; color: #f59e0b; font-size: 16px; font-weight: bold;">•</td>
                   <td style="padding: 8px 0; font-size: 14px; color: #344054;">
                     <strong style="color: #101828;">Pantry & Budget Tracker:</strong> Log in-stock ingredients to eliminate food waste and estimate grocery bills.
                   </td>

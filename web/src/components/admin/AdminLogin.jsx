@@ -4,9 +4,8 @@ import PasswordInput from "../common/PasswordInput";
 import ForgotPassword from "../auth/ForgotPassword";
 
 /**
- * Unified Admin & Super Admin Login (Split-Screen) styled with Tailwind CSS.
- * - Left pane: Top-anchored KusinApp logo, vertically centered headline & subheadline, copyright footer.
- * - Right pane: Unified Admin & Super Admin sign-in or cohesive 4-step Forgot Password flow.
+ * Unified Admin & Super Admin Login (Split-Screen) — Cohesive with KusinApp Design System.
+ * Zero floating pills, clean typography, warm illustrations, and email link password reset.
  */
 export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
   const [email, setEmail] = useState("");
@@ -40,36 +39,47 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white">
       {/* LEFT: Brand & Purpose Showcase */}
-      <div className="lg:flex-[1.15] flex flex-col justify-between px-6 py-8 sm:px-12 lg:py-12 lg:px-16 bg-admin-showcase border-b lg:border-b-0 lg:border-r border-slate-200">
+      <div className="lg:flex-[1.1] flex flex-col justify-between px-6 py-8 sm:px-12 lg:py-12 lg:px-16 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200">
         {/* Top-anchored logo */}
         <div className="max-w-[520px] w-full mx-auto flex items-center min-h-[48px]">
           <img
             src="/assets/kusinapp-logo-horizontal.png"
             alt="KusinApp"
-            className="h-12 w-auto max-w-[220px] object-contain"
+            className="h-11 w-auto max-w-[200px] object-contain"
           />
         </div>
 
-        {/* Vertically centered headline block */}
+        {/* Vertically centered illustration + headline block */}
         <div className="flex flex-col justify-center flex-1 max-w-[520px] w-full mx-auto py-6 lg:py-8">
-          <h1 className="text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold text-slate-900 leading-[1.18] tracking-tight m-0">
+          <div className="relative w-52 h-52 mx-auto lg:mx-0 mb-6 grid place-items-center">
+            <div className="absolute inset-2 rounded-full bg-amber-100/70" />
+            <img
+              src="/assets/onboard-cooking.png"
+              alt="KusinApp Kitchen Administration"
+              className="relative w-44 h-44 object-contain"
+            />
+          </div>
+          <div className="text-xs font-extrabold tracking-widest uppercase text-amber-700 mb-2">
+            KusinApp Governance & Operations
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight tracking-tight m-0">
             Keep every recipe, ingredient, and price in order.
           </h1>
-          <p className="mt-4 text-base lg:text-[1.05rem] text-slate-600 leading-relaxed m-0">
+          <p className="mt-3.5 text-sm sm:text-base text-slate-600 leading-relaxed m-0">
             Sign in with your administrative credentials to manage root system infrastructure,
             administrative roles, recipe moderation, and platform-wide configurations.
           </p>
         </div>
 
         {/* Bottom copyright footer */}
-        <footer className="text-xs text-slate-400 max-w-[520px] mx-auto w-full min-h-[36px] lg:min-h-[48px] flex items-center">
-          © 2026 KusinApp. Recipe & Cost Management Platform.
+        <footer className="text-xs text-slate-400 max-w-[520px] mx-auto w-full min-h-[36px] flex items-center">
+          © 2026 KusinApp · Recipe & Cost Management Platform
         </footer>
       </div>
 
-      {/* RIGHT: Unified Administrative Sign-In or Forgot Password Wizard */}
+      {/* RIGHT: Unified Administrative Sign-In or Forgot Password Link */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white">
-        <div className="w-full max-w-[440px]">
+        <div className="w-full max-w-[420px]">
           {isForgotPassword ? (
             <ForgotPassword
               isAdminPortal={true}
@@ -78,10 +88,10 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
           ) : (
             <div>
               <div className="mb-7">
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[0.72rem] font-bold tracking-wider uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                <div className="text-xs font-extrabold tracking-widest uppercase text-amber-700 mb-1.5">
                   Administrative Portal
-                </span>
-                <h2 className="text-2xl sm:text-[1.85rem] font-extrabold text-slate-900 mt-2.5 tracking-tight leading-tight">
+                </div>
+                <h2 className="text-2xl sm:text-[1.75rem] font-extrabold text-slate-900 tracking-tight leading-tight">
                   Admin & Super Admin Sign In
                 </h2>
                 <p className="mt-1.5 text-sm text-slate-600">
@@ -92,7 +102,7 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
               {errorAlert && (
                 <div
                   role="alert"
-                  className="px-3.5 py-3 mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm leading-relaxed"
+                  className="px-3.5 py-3 mb-4 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold text-center leading-relaxed"
                 >
                   {errorAlert}
                 </div>
@@ -102,14 +112,14 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
                 <div className="flex flex-col gap-1.5">
                   <label
                     htmlFor="admin-email"
-                    className="flex justify-between items-baseline text-xs font-bold tracking-wider uppercase text-slate-900"
+                    className="text-xs font-bold tracking-wider uppercase text-slate-800"
                   >
                     Email Address
                   </label>
                   <input
                     id="admin-email"
                     type="email"
-                    className="w-full h-11 px-3.5 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+                    className="w-full h-12 px-3.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-[0.95rem] text-slate-900 placeholder:text-slate-400 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
                     placeholder="Enter your administrative email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -122,16 +132,16 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
                   <div className="flex justify-between items-baseline">
                     <label
                       htmlFor="admin-password"
-                      className="text-xs font-bold tracking-wider uppercase text-slate-900"
+                      className="text-xs font-bold tracking-wider uppercase text-slate-800"
                     >
                       Password
                     </label>
                     <button
                       type="button"
-                      className="border-0 bg-transparent p-0 text-xs font-semibold text-amber-700 hover:underline cursor-pointer"
+                      className="border-0 bg-transparent p-0 text-xs font-bold text-amber-700 hover:underline cursor-pointer"
                       onClick={() => setIsForgotPassword(true)}
                     >
-                      Forgot password?
+                      Forgot Password?
                     </button>
                   </div>
                   <PasswordInput
@@ -146,23 +156,23 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
 
                 <button
                   type="submit"
-                  className="w-full h-11 px-4 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:shadow-amber-ring"
+                  className="w-full h-13 px-4 bg-amber-500 hover:bg-amber-600 rounded-2xl text-base font-bold text-white shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-55 cursor-pointer"
                   disabled={isSubmitting}
                 >
                   {isSubmitting && (
                     <span
-                      className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                      className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"
                       aria-hidden="true"
                     />
                   )}
-                  {isSubmitting ? "Verifying administrative access..." : "Sign in →"}
+                  {isSubmitting ? "Verifying administrative access..." : "Sign In →"}
                 </button>
               </form>
 
-              <div className="flex gap-2.5 items-start mt-6 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 leading-relaxed">
+              <div className="flex gap-3 items-start mt-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600 leading-relaxed">
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -176,23 +186,23 @@ export default function AdminLogin({ onLoginSuccess, onSwitchToUserPortal }) {
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
                 <div>
-                  <strong className="font-bold text-slate-800">Root governance session.</strong>{" "}
+                  <strong className="font-bold text-slate-900">Root governance session.</strong>{" "}
                   Role-based access control strictly enforced.
-                  <div className="mt-0.5 text-slate-400 text-[0.75rem]">
+                  <div className="mt-0.5 text-slate-400 text-[11.5px]">
                     Unauthorized attempts are audited in administrative activity logs.
                   </div>
                 </div>
               </div>
 
               {typeof onSwitchToUserPortal === "function" && (
-                <p className="flex items-center justify-center gap-1.5 mt-7 text-sm text-slate-600">
+                <p className="flex items-center justify-center gap-1.5 mt-7 text-xs font-medium text-slate-600">
                   Looking for the user kitchen app?
                   <button
                     type="button"
-                    className="border-0 bg-transparent p-0 font-semibold text-amber-700 hover:underline cursor-pointer"
+                    className="border-0 bg-transparent p-0 font-bold text-amber-700 hover:underline cursor-pointer"
                     onClick={onSwitchToUserPortal}
                   >
-                    Return to Web Viewer
+                    Return to KusinApp Web
                   </button>
                 </p>
               )}

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   Easing,
   Image,
@@ -14,13 +13,13 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { colors } from "../theme";
+import { colors, shadow } from "../theme";
 import {
   BackButton,
+  ConfirmationModal,
   FadeIn,
   Icon,
   PrimaryButton,
-  ScalePress,
   StepIndicator,
 } from "../components/ui";
 import { calculateBMI, saveMobileOnboarding } from "../services/authService";
@@ -55,7 +54,24 @@ const GOALS = [
   { id: "quick_easy", label: "Quick and Easy", icon: "clock-outline" },
 ];
 
-const DIETS = ["No Pork", "Halal", "Peanut-free", "Dairy-free", "Vegetarian"];
+const DIETS = [
+  "No Pork",
+  "Halal",
+  "Peanut-free",
+  "Dairy-free",
+  "Vegetarian",
+  "Seafood-free",
+  "Egg-free",
+];
+
+const COMORBIDITIES = [
+  { id: "none", label: "None" },
+  { id: "hypertension", label: "Hypertension (Low Sodium)" },
+  { id: "diabetes", label: "Diabetes (Low Sugar)" },
+  { id: "high_cholesterol", label: "High Cholesterol (Low Fat)" },
+  { id: "hyperuricemia_gout", label: "Gout (Low Purine)" },
+  { id: "gerd_acid_reflux", label: "Acid Reflux / GERD" },
+];
 
 const WEIGHT_GOALS = [
   { id: "maintain", label: "Maintain", icon: "scale-balance" },
@@ -67,17 +83,24 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
   const { width } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [errorModal, setErrorModal] = useState(null);
+
+  // Start with NOTHING pre-selected so the user makes an intentional choice
+  const ob = profile?.onboarding;
   const [data, setData] = useState({
-    household: "just_me",
-    goals: [],
-    dietaryRestrictions: [],
-    gender: profile?.gender || "female",
-    age: 28,
-    heightCm: 165,
-    weightKg: 62,
-    weightGoal: "maintain",
+    household: ob?.household || "",
+    goals: Array.isArray(ob?.goals) ? ob.goals : [],
+    dietaryRestrictions: Array.isArray(ob?.dietaryRestrictions) ? ob.dietaryRestrictions : [],
+    comorbidities: Array.isArray(ob?.comorbidities) ? ob.comorbidities : [],
+    gender: ob?.gender || "",
+    age: ob?.age ? String(ob.age) : "",
+    heightCm: ob?.heightCm ? String(ob.heightCm) : "",
+    weightKg: ob?.weightKg ? String(ob.weightKg) : "",
+    weightGoal: ob?.weightGoal || "",
   });
+
   const set = (patch) => setData((d) => ({ ...d, ...patch }));
+
   const toggleIn = (key, id) =>
     setData((d) => ({
       ...d,
@@ -85,6 +108,19 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
         ? d[key].filter((x) => x !== id)
         : [...d[key], id],
     }));
+
+  const toggleComorbidity = (id) => {
+    setData((d) => {
+      if (id === "none") {
+        return { ...d, comorbidities: d.comorbidities.includes("none") ? [] : ["none"] };
+      }
+      const withoutNone = d.comorbidities.filter((x) => x !== "none");
+      const next = withoutNone.includes(id)
+        ? withoutNone.filter((x) => x !== id)
+        : [...withoutNone, id];
+      return { ...d, comorbidities: next };
+    });
+  };
 
   const slide = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -97,14 +133,57 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
   }, [step, slide]);
 
   const back = () => (step === 0 ? onExit() : setStep((s) => s - 1));
+
   const next = async () => {
-    if (step < 2) return setStep((s) => s + 1);
+    if (step === 0) {
+      if (!data.household) {
+        setErrorModal({
+          title: "Select Your Household",
+          message: "Please choose who you are cooking for before continuing.",
+        });
+        return;
+      }
+      setStep(1);
+      return;
+    }
+
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+
+    // Validate Step 3 (Health Goals)
+    if (!data.gender) {
+      setErrorModal({
+        title: "Biological Sex Required",
+        message: "Please select Female or Male so we can accurately compute your daily calorie needs.",
+      });
+      return;
+    }
+    if (!data.age || !data.heightCm || !data.weightKg) {
+      setErrorModal({
+        title: "Body Metrics Required",
+        message: "Please tap Age, Height, and Weight to enter your body measurements.",
+      });
+      return;
+    }
+    if (!data.weightGoal) {
+      setErrorModal({
+        title: "Select a Weight Goal",
+        message: "Please choose whether you want to Maintain, Gain, or Lose weight.",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       await saveMobileOnboarding(user.uid, data);
       onDone();
     } catch (e) {
-      Alert.alert("Couldn't save", e.message);
+      setErrorModal({
+        title: "Couldn't Save Profile",
+        message: e.message || "Please check your inputs and try again.",
+      });
       setSaving(false);
     }
   };
@@ -146,7 +225,12 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
             />
           </View>
           <View style={{ width }}>
-            <GoalsStep data={data} toggleIn={toggleIn} active={step === 1} />
+            <GoalsStep
+              data={data}
+              toggleIn={toggleIn}
+              toggleComorbidity={toggleComorbidity}
+              active={step === 1}
+            />
           </View>
           <View style={{ width }}>
             <HealthStep data={data} set={set} />
@@ -158,6 +242,16 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
         <PrimaryButton title="Continue" onPress={next} loading={saving} />
         <Text style={styles.footer}>{footers[step]}</Text>
       </View>
+
+      <ConfirmationModal
+        visible={!!errorModal}
+        title={errorModal?.title || ""}
+        message={errorModal?.message || ""}
+        confirmText="Got it"
+        cancelText=""
+        onClose={() => setErrorModal(null)}
+        onConfirm={() => setErrorModal(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -204,7 +298,7 @@ function HouseholdStep({ value, onChange, active }) {
 
 /* --------------------------- Step 2 --------------------------- */
 
-function GoalsStep({ data, toggleIn, active }) {
+function GoalsStep({ data, toggleIn, toggleComorbidity, active }) {
   return (
     <ScrollView
       contentContainerStyle={styles.stepScroll}
@@ -212,8 +306,9 @@ function GoalsStep({ data, toggleIn, active }) {
     >
       <Text style={styles.screenTitle}>Set your goals & preferences</Text>
       <Text style={styles.subtitle}>
-        Tailor your Pinoy meal plans to your nutritional targets and family budget.
+        Tailor your Pinoy meal plans to your nutritional targets, allergies, and health needs.
       </Text>
+
       <View style={styles.grid}>
         {GOALS.map((g, i) => {
           const sel = data.goals.includes(g.id);
@@ -249,7 +344,8 @@ function GoalsStep({ data, toggleIn, active }) {
           );
         })}
       </View>
-      <Text style={styles.sectionLabel}>DIETARY RESTRICTIONS</Text>
+
+      <Text style={styles.sectionLabel}>DIETARY RESTRICTIONS & ALLERGIES</Text>
       <View style={styles.chips}>
         {DIETS.map((d) => {
           const sel = data.dietaryRestrictions.includes(d);
@@ -280,11 +376,45 @@ function GoalsStep({ data, toggleIn, active }) {
           );
         })}
       </View>
+
+      <Text style={[styles.sectionLabel, { marginTop: 18 }]}>
+        HEALTH CONDITIONS (COMORBIDITIES)
+      </Text>
+      <View style={styles.chips}>
+        {COMORBIDITIES.map((c) => {
+          const sel = data.comorbidities.includes(c.id);
+          return (
+            <TouchableOpacity
+              key={c.id}
+              activeOpacity={0.82}
+              onPress={() => toggleComorbidity(c.id)}
+              style={[styles.chip, sel && styles.chipSel]}
+            >
+              {sel ? (
+                <Icon
+                  name="check"
+                  size={12}
+                  color={colors.primaryDark}
+                  style={{ marginRight: 5 }}
+                />
+              ) : null}
+              <Text
+                style={[
+                  styles.chipText,
+                  sel && { color: colors.primaryDark, fontWeight: "700" },
+                ]}
+              >
+                {c.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </ScrollView>
   );
 }
 
-/* --------------------------- Step 3 (Strict Grid Alignment) --------------------------- */
+/* --------------------------- Step 3 (Strict Grid Alignment & Unselected Initial State) --------------------------- */
 
 function HealthStep({ data, set }) {
   const [editing, setEditing] = useState(null);
@@ -293,7 +423,9 @@ function HealthStep({ data, set }) {
     [data.heightCm, data.weightKg]
   );
   const range =
-    bmi < 18.5
+    !bmi
+      ? { label: "Enter height & weight", fg: colors.inkSubtle }
+      : bmi < 18.5
       ? { label: "Underweight", fg: "#1D4ED8" }
       : bmi < 25
       ? { label: "Healthy range", fg: "#15803D" }
@@ -311,7 +443,7 @@ function HealthStep({ data, set }) {
         We'll use this to work out your daily calories. You can change it anytime.
       </Text>
 
-      {/* Row 1: Gender (Split 50 / 50 exactly) */}
+      {/* Row 1: Gender (Split 50 / 50, unselected by default) */}
       <View style={styles.gridRow}>
         {[
           ["female", "Female", "gender-female"],
@@ -354,31 +486,44 @@ function HealthStep({ data, set }) {
         })}
       </View>
 
-      {/* Row 2: Metrics (Split 1/3, 1/3, 1/3 exactly) */}
+      {/* Row 2: Metrics (Split 1/3, 1/3, 1/3, empty placeholder until tapped) */}
       <View style={styles.gridRow}>
         {[
           ["age", "AGE", "yrs"],
           ["heightCm", "HEIGHT", "cm"],
           ["weightKg", "WEIGHT", "kg"],
-        ].map(([key, label, unit]) => (
-          <TouchableOpacity
-            key={key}
-            activeOpacity={0.82}
-            onPress={() => setEditing(key)}
-            style={[styles.gridCell, styles.metricBox]}
-          >
-            <Text style={styles.metricLabel}>{label}</Text>
-            <Text style={styles.metricValue}>
-              {data[key]} <Text style={styles.metricUnit}>{unit}</Text>
-            </Text>
-          </TouchableOpacity>
-        ))}
+        ].map(([key, label, unit]) => {
+          const hasVal = Boolean(data[key]);
+          return (
+            <TouchableOpacity
+              key={key}
+              activeOpacity={0.82}
+              onPress={() => setEditing(key)}
+              style={[
+                styles.gridCell,
+                styles.metricBox,
+                hasVal && { borderColor: colors.primary, backgroundColor: "#FFFBEB" },
+              ]}
+            >
+              <Text style={styles.metricLabel}>{label}</Text>
+              <Text
+                style={[
+                  styles.metricValue,
+                  !hasVal && { color: colors.inkSubtle },
+                ]}
+              >
+                {hasVal ? data[key] : "—"}{" "}
+                <Text style={styles.metricUnit}>{unit}</Text>
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Row 3: BMI Card */}
       <BmiCard bmi={bmi} range={range} />
 
-      {/* Row 4: Weight Goal (Split 1/3, 1/3, 1/3 exactly, matching row above) */}
+      {/* Row 4: Weight Goal (Split 1/3, 1/3, 1/3, unselected by default) */}
       <View style={styles.gridRow}>
         {WEIGHT_GOALS.map((g) => {
           const sel = data.weightGoal === g.id;
@@ -420,10 +565,10 @@ function HealthStep({ data, set }) {
 
       <MetricEditor
         field={editing}
-        value={editing ? data[editing] : 0}
+        value={editing ? data[editing] : ""}
         onClose={() => setEditing(null)}
         onSave={(v) => {
-          set({ [editing]: v });
+          set({ [editing]: String(v) });
           setEditing(null);
         }}
       />
@@ -437,7 +582,9 @@ const BMI_MAX = 40;
 function BmiCard({ bmi, range }) {
   const [w, setW] = useState(0);
   const pos = useRef(new Animated.Value(0)).current;
-  const pct = Math.min(1, Math.max(0, (bmi - BMI_MIN) / (BMI_MAX - BMI_MIN)));
+  const pct = bmi
+    ? Math.min(1, Math.max(0, (bmi - BMI_MIN) / (BMI_MAX - BMI_MIN)))
+    : 0;
   useEffect(() => {
     Animated.spring(pos, {
       toValue: pct * w,
@@ -465,7 +612,7 @@ function BmiCard({ bmi, range }) {
       >
         <View>
           <Text style={styles.bmiLabel}>Your BMI</Text>
-          <Text style={styles.bmiValue}>{bmi || "--"}</Text>
+          <Text style={styles.bmiValue}>{bmi || "—"}</Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
           <Text style={[styles.bmiStatusText, { color: range.fg }]}>
@@ -478,14 +625,16 @@ function BmiCard({ bmi, range }) {
         style={{ marginTop: 16 }}
         onLayout={(e) => setW(e.nativeEvent.layout.width)}
       >
-        <Animated.View
-          style={[
-            styles.marker,
-            { transform: [{ translateX: Animated.subtract(pos, 6) }] },
-          ]}
-        >
-          <Icon name="chevron-down" size={14} color={colors.ink} />
-        </Animated.View>
+        {bmi > 0 ? (
+          <Animated.View
+            style={[
+              styles.marker,
+              { transform: [{ translateX: Animated.subtract(pos, 6) }] },
+            ]}
+          >
+            <Icon name="chevron-down" size={14} color={colors.ink} />
+          </Animated.View>
+        ) : null}
         <View style={styles.bar}>
           {segs.map(([flex, color], i) => (
             <View
@@ -523,25 +672,50 @@ function BmiCard({ bmi, range }) {
 }
 
 const LIMITS = {
-  age: { min: 10, max: 120, step: 1, label: "Age", unit: "yrs" },
-  heightCm: { min: 50, max: 250, step: 1, label: "Height", unit: "cm" },
-  weightKg: { min: 20, max: 300, step: 1, label: "Weight", unit: "kg" },
+  age: { min: 10, max: 120, step: 1, defaultVal: 25, label: "Age", unit: "yrs" },
+  heightCm: { min: 50, max: 250, step: 1, defaultVal: 165, label: "Height", unit: "cm" },
+  weightKg: { min: 20, max: 300, step: 1, defaultVal: 60, label: "Weight", unit: "kg" },
 };
 
 function MetricEditor({ field, value, onClose, onSave }) {
-  const [text, setText] = useState(String(value));
-  useEffect(() => setText(String(value)), [value, field]);
-  if (!field) return null;
-  const lim = LIMITS[field];
+  const lim = field ? LIMITS[field] : null;
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (!field || !lim) return;
+    setText(value ? String(value) : String(lim.defaultVal));
+  }, [value, field, lim]);
+
+  if (!field || !lim) return null;
+
   const num = parseFloat(text) || 0;
   const bump = (d) =>
-    setText(String(Math.min(lim.max, Math.max(lim.min, num + d))));
+    setText(String(Math.min(lim.max, Math.max(lim.min, (num || lim.defaultVal) + d))));
   const valid = num >= lim.min && num <= lim.max;
+
   return (
     <Modal transparent animationType="fade" visible onRequestClose={onClose}>
-      <View style={styles.modalBg}>
-        <FadeIn from={40} style={styles.modalCard}>
-          <Text style={styles.modalTitle}>{lim.label}</Text>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onClose}
+        style={styles.modalBg}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {}}
+          style={styles.modalCard}
+        >
+          <View style={styles.modalHeaderRow}>
+            <Text style={styles.modalTitle}>Set {lim.label}</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.modalCloseBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon name="close" size={18} color={colors.inkMuted} />
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.stepperRow}>
             <TouchableOpacity onPress={() => bump(-lim.step)} style={styles.stepBtn}>
               <Icon name="minus" size={20} color={colors.ink} />
@@ -559,26 +733,35 @@ function MetricEditor({ field, value, onClose, onSave }) {
               <Icon name="plus" size={20} color={colors.ink} />
             </TouchableOpacity>
           </View>
+
           {!valid ? (
             <Text style={styles.modalError}>
-              Enter a value between {lim.min} and {lim.max}.
+              Enter a value between {lim.min} and {lim.max} {lim.unit}.
             </Text>
           ) : null}
-          <PrimaryButton
-            title="Save"
-            icon="check"
-            disabled={!valid}
-            onPress={() => onSave(num)}
-            style={{ marginTop: 16 }}
-          />
-          <TouchableOpacity
-            onPress={onClose}
-            style={{ alignSelf: "center", padding: 12 }}
-          >
-            <Text style={{ color: colors.inkMuted }}>Cancel</Text>
-          </TouchableOpacity>
-        </FadeIn>
-      </View>
+
+          <View style={styles.modalActionRow}>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              onPress={onClose}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              disabled={!valid}
+              onPress={() => onSave(num)}
+              style={[
+                styles.modalSaveBtn,
+                !valid && { opacity: 0.5 },
+              ]}
+            >
+              <Text style={styles.modalSaveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -654,7 +837,7 @@ const styles = StyleSheet.create({
   },
   gridItem: { width: "48%", marginBottom: 10 },
   goalCard: {
-    height: 100,
+    height: 94,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
@@ -679,9 +862,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1.2,
     borderColor: colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    borderRadius: 14,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
     backgroundColor: "#fff",
   },
   chipSel: { borderColor: colors.primary, backgroundColor: "#FFFBEB" },
@@ -782,38 +965,103 @@ const styles = StyleSheet.create({
   },
   modalBg: {
     flex: 1,
-    backgroundColor: "rgba(16,24,40,0.45)",
+    backgroundColor: "rgba(16, 24, 40, 0.48)",
     justifyContent: "center",
-    padding: 28,
+    alignItems: "center",
+    paddingHorizontal: 22,
   },
-  modalCard: { backgroundColor: "#fff", borderRadius: 24, padding: 22 },
+  modalCard: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 22,
+    ...shadow.card,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: "800",
     color: colors.ink,
-    textAlign: "center",
-    marginBottom: 16,
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
   },
   stepperRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 10,
   },
   stepBtn: {
     width: 46,
     height: 46,
-    borderRadius: 23,
+    borderRadius: 14,
     backgroundColor: colors.lavender,
     alignItems: "center",
     justifyContent: "center",
   },
   stepInput: {
-    fontSize: 34,
+    width: 100,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    textAlign: "center",
+    fontSize: 22,
     fontWeight: "800",
     color: colors.ink,
-    minWidth: 86,
-    textAlign: "center",
   },
-  stepUnit: { fontSize: 15, color: colors.inkMuted, marginRight: 12 },
-  modalError: { color: colors.red, textAlign: "center", marginTop: 10 },
+  stepUnit: { fontSize: 15, color: colors.inkMuted, fontWeight: "600" },
+  modalError: {
+    color: colors.red,
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 12.5,
+  },
+  modalActionRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 22,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1.2,
+    borderColor: colors.border,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCancelText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: colors.inkMuted,
+  },
+  modalSaveBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalSaveText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: "#fff",
+  },
 });

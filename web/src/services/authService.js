@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
   sendPasswordResetEmail,
   updateProfile,
   setPersistence,
@@ -12,7 +13,7 @@ import {
 } from "firebase/auth";
 import { ref, set, get, update, serverTimestamp } from "firebase/database";
 import { auth, db } from "../config/firebase";
-import { sendWelcomeEmail, sendOtpEmail } from "./emailService";
+import { sendWelcomeEmail } from "./emailService";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -44,9 +45,25 @@ function formatAuthError(error, defaultMessage) {
   }
 }
 
+export function isValidEmail(email) {
+  return EMAIL_REGEX.test((email || "").trim());
+}
+
+/**
+ * Password rules shared by the signup checklist (mirrors mobile app).
+ */
+export function getPasswordChecks(password = "") {
+  return {
+    length: password.length >= MIN_PASSWORD_LENGTH,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password),
+  };
+}
+
 /**
  * Calculates Body Mass Index (BMI) and determines BMI category per WHO standards.
- * Formula: weight (kg) / (height (m) ^ 2)
  */
 export function calculateBMI(heightCm, weightKg) {
   const height = parseFloat(heightCm);
@@ -87,9 +104,9 @@ export function calculateBMR(weightKg, heightCm, age, gender = "male") {
 }
 
 /**
- * US-01: User Registration
+ * US-01: User Registration (with Email Verification Link)
  */
-export async function registerUser(email, password, displayName, role = "user") {
+export async function registerUser(email, password, displayName, gender = "", role = "user") {
   const trimmedName = typeof displayName === "string" ? displayName.trim() : "";
   const trimmedEmail = typeof email === "string" ? email.trim() : "";
 
@@ -125,18 +142,26 @@ export async function registerUser(email, password, displayName, role = "user") 
       displayName: trimmedName,
     });
 
+    // Send standard Firebase Email Verification Link
+    try {
+      await sendEmailVerification(user);
+    } catch (verifyErr) {
+      console.warn("Email verification link notice:", verifyErr?.message);
+    }
+
     const userRef = ref(db, `users/${user.uid}`);
     await set(userRef, {
       uid: user.uid,
       displayName: trimmedName,
       email: trimmedEmail,
+      gender: gender || "",
       role: role,
+      emailVerified: false,
       onboardingCompleted: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
 
-    // Dispatch branded Welcome Email / registration notification
     try {
       await sendWelcomeEmail(trimmedEmail, trimmedName);
     } catch (welcomeErr) {
@@ -151,9 +176,31 @@ export async function registerUser(email, password, displayName, role = "user") 
   }
 }
 
+export async function resendVerificationLink(userParam) {
+  const targetUser = userParam || auth.currentUser;
+  if (!targetUser) {
+    throw new Error("No active account found to resend verification link.");
+  }
+  try {
+    await sendEmailVerification(targetUser);
+    return { success: true };
+  } catch (err) {
+    if (err?.code === "auth/too-many-requests") {
+      return { success: true };
+    }
+    throw new Error(formatAuthError(err, "Failed to resend verification link."));
+  }
+}
+
 /**
- * US-03: Save Health & Cooking Skill Onboarding
+ * US-03: Save Unified Health, Household, Allergies & Comorbidities Onboarding
  */
+const HOUSEHOLD_TO_PERSONA = {
+  just_me: { userPersona: "solo_eater", householdSize: 1 },
+  for_two: { userPersona: "household_provider", householdSize: 2 },
+  family: { userPersona: "household_provider", householdSize: 4 },
+};
+
 export async function saveUserOnboarding(uid, onboardingData) {
   if (!uid) {
     throw new Error("User ID is required to save onboarding.");
@@ -163,6 +210,9 @@ export async function saveUserOnboarding(uid, onboardingData) {
   const height = parseFloat(onboardingData.heightCm);
   const weight = parseFloat(onboardingData.weightKg);
 
+  if (!onboardingData.gender) {
+    throw new Error("Please select your biological sex (Female or Male).");
+  }
   if (!age || age < 10 || age > 120) {
     throw new Error("Please enter a valid age between 10 and 120.");
   }
@@ -173,33 +223,54 @@ export async function saveUserOnboarding(uid, onboardingData) {
     throw new Error("Please enter a valid weight between 20 and 300 kg.");
   }
   if (!onboardingData.weightGoal) {
-    throw new Error("Please select your weight goal (Maintain, Lose, or Gain).");
-  }
-  if (!onboardingData.userPersona) {
-    throw new Error("Please select your target user profile persona.");
-  }
-  if (!onboardingData.cookingSkill) {
-    throw new Error("Please select your cooking skill level.");
+    throw new Error("Please select your weight goal (Maintain, Gain, or Lose).");
   }
 
+  const householdKey = onboardingData.household || "just_me";
+  const mappedHousehold = HOUSEHOLD_TO_PERSONA[householdKey] || HOUSEHOLD_TO_PERSONA.just_me;
+  const goals = Array.isArray(onboardingData.goals) ? onboardingData.goals : [];
+
+  const userPersona =
+    onboardingData.userPersona ||
+    (goals.includes("eat_healthy") && householdKey === "just_me"
+      ? "health_targeted_eater"
+      : mappedHousehold.userPersona);
+
+  const householdSize =
+    parseInt(onboardingData.householdSize, 10) || mappedHousehold.householdSize;
+
+  const cookingSkill =
+    onboardingData.cookingSkill ||
+    (goals.includes("learn_to_cook") ? "beginner" : "intermediate");
+
   const { bmi, category: bmiCategory } = calculateBMI(height, weight);
-  const bmr = calculateBMR(weight, height, age, onboardingData.gender || "male");
+  const bmr = calculateBMR(weight, height, age, onboardingData.gender);
+
+  const comorbidities =
+    Array.isArray(onboardingData.comorbidities) && onboardingData.comorbidities.length > 0
+      ? onboardingData.comorbidities
+      : ["none"];
+
+  const dietaryRestrictions = Array.isArray(onboardingData.dietaryRestrictions)
+    ? onboardingData.dietaryRestrictions
+    : [];
 
   const payload = {
     age,
-    gender: onboardingData.gender || "male",
+    gender: onboardingData.gender,
     heightCm: height,
     weightKg: weight,
     bmi,
     bmiCategory,
     bmr,
     weightGoal: onboardingData.weightGoal,
-    comorbidities: Array.isArray(onboardingData.comorbidities)
-      ? onboardingData.comorbidities
-      : ["none"],
-    userPersona: onboardingData.userPersona,
-    householdSize: parseInt(onboardingData.householdSize, 10) || 1,
-    cookingSkill: onboardingData.cookingSkill,
+    comorbidities,
+    dietaryRestrictions,
+    goals,
+    household: householdKey,
+    userPersona,
+    householdSize,
+    cookingSkill,
     completedAt: serverTimestamp(),
   };
 
@@ -209,8 +280,9 @@ export async function saveUserOnboarding(uid, onboardingData) {
 
     const userRootRef = ref(db, `users/${uid}`);
     await update(userRootRef, {
-      userPersona: onboardingData.userPersona,
+      userPersona,
       onboardingCompleted: true,
+      onboardingSkipped: false,
       updatedAt: serverTimestamp(),
     });
 
@@ -220,6 +292,14 @@ export async function saveUserOnboarding(uid, onboardingData) {
       error?.message || "Failed to save onboarding assessment. Please try again."
     );
   }
+}
+
+export async function skipUserOnboarding(uid) {
+  if (!uid) return;
+  await update(ref(db, `users/${uid}`), {
+    onboardingSkipped: true,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 /**
@@ -293,7 +373,6 @@ export async function loginWithGoogle() {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
 
-    // Check if user record exists in Realtime Database; if not, create profile
     const userRef = ref(db, `users/${user.uid}`);
     const snapshot = await get(userRef);
 
@@ -327,11 +406,9 @@ export async function loginWithGoogle() {
 }
 
 /**
- * Generates and dispatches a 6-digit OTP verification code.
- * Stores in sessionStorage for secure in-session verification,
- * and triggers standard Firebase password reset email.
+ * Sends a standard Password Reset Link to the user's email address via Firebase Auth.
  */
-export async function requestPasswordResetOtp(email) {
+export async function sendPasswordResetLink(email) {
   const trimmedEmail = typeof email === "string" ? email.trim() : "";
   if (!trimmedEmail) {
     throw new Error("Please enter your email address.");
@@ -340,95 +417,21 @@ export async function requestPasswordResetOtp(email) {
     throw new Error("Please enter a valid email address.");
   }
 
-  // Generate 6-digit OTP
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const sessionPayload = {
-    email: trimmedEmail.toLowerCase(),
-    code: otpCode,
-    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes expiry
-  };
-
-  if (typeof window !== "undefined" && window.sessionStorage) {
-    window.sessionStorage.setItem("k_pwd_reset_otp", JSON.stringify(sessionPayload));
-  }
-
-  // Log code to console for testing/verification inspection
-  console.log(`[KusinApp Security] 6-digit OTP code dispatched to ${trimmedEmail}: ${otpCode}`);
-
-  // Dispatch branded HTML OTP Email
-  try {
-    await sendOtpEmail(trimmedEmail, otpCode);
-  } catch (otpErr) {
-    console.warn("OTP email dispatch notice:", otpErr?.message);
-  }
-
-  // Best effort: trigger Firebase password reset email as well
   try {
     await sendPasswordResetEmail(auth, trimmedEmail);
+    return { success: true, email: trimmedEmail };
   } catch (err) {
-    // If Firebase email fails (e.g. rate limit or domain), session OTP still functions
-    console.warn("Firebase password reset email status:", err?.message);
+    throw new Error(
+      formatAuthError(err, "Failed to send password reset link. Please try again.")
+    );
   }
-
-  return { success: true, email: trimmedEmail };
 }
 
-/**
- * Validates the entered 6-digit verification code.
- */
-export function verifyPasswordResetOtp(email, enteredCode) {
-  const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
-  const code = typeof enteredCode === "string" ? enteredCode.trim() : "";
-
-  if (!code || code.length !== 6) {
-    throw new Error("Please enter the complete 6-digit verification code.");
-  }
-
-  // Universal verification code for testing/development
-  if (code === "123456") {
-    return { valid: true };
-  }
-
-  if (typeof window !== "undefined" && window.sessionStorage) {
-    const raw = window.sessionStorage.getItem("k_pwd_reset_otp");
-    if (!raw) {
-      throw new Error("Verification session expired. Please request a new code.");
-    }
-
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed.email !== trimmedEmail) {
-        throw new Error("The code was requested for a different email address.");
-      }
-      if (Date.now() > parsed.expiresAt) {
-        throw new Error("Verification code has expired. Please request a new code.");
-      }
-      if (parsed.code !== code) {
-        throw new Error("Invalid verification code. Please check and try again.");
-      }
-      return { valid: true };
-    } catch (e) {
-      if (e.message.includes("Invalid") || e.message.includes("expired") || e.message.includes("different")) {
-        throw e;
-      }
-      throw new Error("Invalid session state. Please request a new code.");
-    }
-  }
-
+// Keep legacy exports mapped to email link for backwards compatibility
+export const requestPasswordResetOtp = sendPasswordResetLink;
+export function verifyPasswordResetOtp() {
   return { valid: true };
 }
-
-/**
- * Completes password reset and clears the OTP session.
- */
-export async function completePasswordReset(email, newPassword) {
-  if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
-    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
-  }
-
-  if (typeof window !== "undefined" && window.sessionStorage) {
-    window.sessionStorage.removeItem("k_pwd_reset_otp");
-  }
-
+export async function completePasswordReset() {
   return { success: true };
 }

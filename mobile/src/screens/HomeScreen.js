@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import {
-  Alert,
   Image,
   SafeAreaView,
   ScrollView,
@@ -9,29 +8,54 @@ import {
   View,
 } from "react-native";
 import { colors, shadow } from "../theme";
-import { FadeIn, Icon, LOGO_ICON, PrimaryButton, ScalePress } from "../components/ui";
+import {
+  ConfirmationModal,
+  FadeIn,
+  Icon,
+  LOGO_ICON,
+  ScalePress,
+} from "../components/ui";
 import { logoutMobileUser } from "../services/authService";
+
+const CONDITION_LABELS = {
+  none: "None",
+  hypertension: "Hypertension",
+  diabetes: "Diabetes",
+  high_cholesterol: "High Cholesterol",
+  hyperuricemia_gout: "Gout",
+  gerd_acid_reflux: "Acid Reflux / GERD",
+};
 
 export default function HomeScreen({ user, profile, onFinishSetup, onLoggedOut }) {
   const first = (user?.displayName || profile?.displayName || "Chef").split(" ")[0];
   const ob = profile?.onboarding;
+  const [logoutModal, setLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [errorModal, setErrorModal] = useState(null);
 
-  const logout = () =>
-    Alert.alert("Log Out", "Are you sure you want to end your KusinApp session?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Log Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logoutMobileUser();
-            onLoggedOut && onLoggedOut();
-          } catch (e) {
-            Alert.alert("Error", e.message);
-          }
-        },
-      },
-    ]);
+  const handleConfirmLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logoutMobileUser();
+      setLogoutModal(false);
+      onLoggedOut && onLoggedOut();
+    } catch (e) {
+      setLogoutModal(false);
+      setErrorModal(e.message || "Failed to log out.");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  const comorbiditiesStr =
+    Array.isArray(ob?.comorbidities) && ob.comorbidities.length
+      ? ob.comorbidities.map((c) => CONDITION_LABELS[c] || c).join(", ")
+      : "None";
+
+  const dietaryStr =
+    Array.isArray(ob?.dietaryRestrictions) && ob.dietaryRestrictions.length
+      ? ob.dietaryRestrictions.join(", ")
+      : "None";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,7 +89,7 @@ export default function HomeScreen({ user, profile, onFinishSetup, onLoggedOut }
                   : "Finish setting up your kusina"}
               </Text>
               <Text style={styles.setupDesc}>
-                Customize household size, dietary restrictions, and health goals.
+                Customize household size, dietary restrictions, comorbidities, and health goals.
               </Text>
             </View>
             <Icon name="chevron-right" size={20} color={colors.primaryDark} />
@@ -88,6 +112,8 @@ export default function HomeScreen({ user, profile, onFinishSetup, onLoggedOut }
               <Row label="BMI" value={`${ob.bmi} (${ob.bmiCategory})`} />
               <Row label="Daily BMR" value={`${ob.bmr} kcal`} />
               <Row label="Weight Goal" value={ob.weightGoal} />
+              <Row label="Allergies & Diet" value={dietaryStr} />
+              <Row label="Health Conditions" value={comorbiditiesStr} />
             </>
           ) : null}
           <Row
@@ -97,13 +123,35 @@ export default function HomeScreen({ user, profile, onFinishSetup, onLoggedOut }
             last
           />
 
-          <ScalePress onPress={logout} style={styles.logoutPill}>
-            <Text style={styles.logoutText}>Log Out</Text>
+          <ScalePress onPress={() => setLogoutModal(true)} style={styles.logoutBtn}>
+            <Text style={styles.logoutText}>Sign Out</Text>
           </ScalePress>
         </FadeIn>
 
         <Text style={styles.footer}>Cook with joy • Less prep, zero stress</Text>
       </ScrollView>
+
+      <ConfirmationModal
+        visible={logoutModal}
+        onClose={() => setLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        title="Sign Out of KusinApp"
+        message="Are you sure you want to log out? Your active session will be ended securely."
+        confirmText="Log Out"
+        cancelText="Cancel"
+        variant="danger"
+        loading={loggingOut}
+      />
+
+      <ConfirmationModal
+        visible={!!errorModal}
+        onClose={() => setErrorModal(null)}
+        onConfirm={() => setErrorModal(null)}
+        title="Notice"
+        message={errorModal || ""}
+        confirmText="OK"
+        cancelText=""
+      />
     </SafeAreaView>
   );
 }
@@ -199,17 +247,20 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 13,
     maxWidth: "62%",
+    textAlign: "right",
   },
-  logoutPill: {
+  logoutBtn: {
     marginTop: 18,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.lavender,
+    borderRadius: 14,
+    backgroundColor: colors.redSoft,
+    borderWidth: 1,
+    borderColor: "#FECACA",
     alignItems: "center",
     justifyContent: "center",
   },
   logoutText: {
-    color: "#9F1239",
+    color: colors.red,
     fontWeight: "700",
     fontSize: 15,
   },

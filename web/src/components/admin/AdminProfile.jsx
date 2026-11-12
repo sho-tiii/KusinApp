@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { updateAdminProfile, changeAdminPassword } from "../../services/adminService";
+import { getPasswordChecks } from "../../services/authService";
 import PasswordInput from "../common/PasswordInput";
 import ConfirmationModal from "../common/ConfirmationModal";
-import PasswordStrengthMeter, { evaluatePasswordStrength } from "../common/PasswordStrengthMeter";
+
+const RULES = [
+  ["length", "8+ characters"],
+  ["upper", "Uppercase letter"],
+  ["lower", "Lowercase letter"],
+  ["number", "A number"],
+  ["symbol", "A symbol"],
+];
 
 /**
- * Admin & Super Admin Profile and Account Management styled with Tailwind CSS.
+ * Admin & Super Admin Profile and Account Management — Cohesive with KusinApp Design System.
  */
 export default function AdminProfile({
   user,
@@ -30,7 +38,8 @@ export default function AdminProfile({
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Sync displayName state when user or profile prop finishes loading
+  const checks = getPasswordChecks(newPassword);
+
   useEffect(() => {
     const resolvedName = user?.displayName || profile?.displayName || "";
     if (resolvedName) {
@@ -38,7 +47,6 @@ export default function AdminProfile({
     }
   }, [user?.displayName, profile?.displayName]);
 
-  // Modal State for critical actions
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: "",
@@ -50,6 +58,7 @@ export default function AdminProfile({
   });
 
   const isSuperAdmin = profile?.role === "super_admin";
+  const first = (displayName || "Admin").split(" ")[0];
 
   const handleProfileSubmit = (e) => {
     e.preventDefault();
@@ -93,10 +102,9 @@ export default function AdminProfile({
       setPasswordError("Please enter your current administrator password.");
       return;
     }
-    const strength = evaluatePasswordStrength(newPassword);
-    if (!strength.isValid) {
+    if (!Object.values(checks).every(Boolean)) {
       setPasswordError(
-        "New password must satisfy at least 3 security criteria (minimum 8 characters)."
+        "New password must meet all 5 password requirements (8+ characters, upper, lower, number, symbol)."
       );
       return;
     }
@@ -155,15 +163,16 @@ export default function AdminProfile({
   };
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-7 py-3.5 bg-white border-b border-slate-300">
-        <div className="flex items-center gap-3.5">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="sticky top-0 z-40 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-7 py-3.5 bg-white/95 backdrop-blur-md border-b border-slate-200">
+        <div className="flex items-center gap-4">
           <img
             src="/assets/kusinapp-logo-horizontal.png"
             alt="KusinApp"
-            className="h-10 sm:h-12 w-auto max-w-[200px] object-contain block"
+            className="h-10 sm:h-11 w-auto max-w-[190px] object-contain block"
           />
-          <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-900 border border-slate-300">
+          <div className="hidden sm:block h-5 w-px bg-slate-200" />
+          <span className="text-xs font-extrabold tracking-wider uppercase text-amber-700">
             {isSuperAdmin ? "Super Admin Portal" : "Admin Portal"}
           </span>
         </div>
@@ -171,14 +180,14 @@ export default function AdminProfile({
         <div className="flex items-center gap-2.5">
           <button
             type="button"
-            className="h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 inline-flex items-center justify-center transition-all"
+            className="h-10 px-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 inline-flex items-center justify-center transition-all cursor-pointer"
             onClick={onSwitchToUserPortal}
           >
-            ← Companion Web Viewer
+            ← KusinApp Web
           </button>
           <button
             type="button"
-            className="h-9 px-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-semibold text-red-700 inline-flex items-center justify-center transition-all"
+            className="h-10 px-3.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl text-xs font-bold text-red-700 inline-flex items-center justify-center transition-all cursor-pointer"
             onClick={handleSignOutConfirm}
           >
             Sign Out
@@ -186,46 +195,51 @@ export default function AdminProfile({
         </div>
       </header>
 
-      <main className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 pt-9 pb-14 flex-1">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-7">
-          <div>
-            <span className="inline-block text-xs font-bold tracking-widest uppercase text-amber-700 mb-1.5">
-              {isSuperAdmin
-                ? "Platform Director Access"
-                : "Recipe & Nutrition Moderator Access"}
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Administrative Account Management
-            </h1>
-            <p className="mt-1.5 text-sm text-slate-600">
-              Manage your administrator credentials, roles, and security policies.
-            </p>
+      <main className="max-w-[1060px] w-full mx-auto px-4 sm:px-6 pt-8 pb-14 flex-1">
+        {/* Top Greeting Banner matching Mobile HomeScreen */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-amber-100 border-2 border-amber-200 grid place-items-center text-xl font-extrabold text-amber-800 shrink-0">
+              {first[0]?.toUpperCase() || "A"}
+            </div>
+            <div>
+              <div className="text-xs font-extrabold tracking-widest uppercase text-amber-700">
+                {isSuperAdmin ? "Platform Director Access" : "Recipe & Nutrition Moderator"}
+              </div>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight mt-0.5">
+                Mabuhay, {first}!
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Manage your administrator credentials, operational role, and security policies.
+              </p>
+            </div>
           </div>
-          <div>
-            <span
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${
-                isSuperAdmin
-                  ? "bg-red-100 text-red-700 border-red-200"
-                  : "bg-amber-100 text-amber-800 border-amber-200"
-              }`}
-            >
-              {isSuperAdmin ? "Super Admin" : "Standard Admin"}
-            </span>
+
+          <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 w-full sm:w-auto">
+            <div className="text-[11px] font-bold tracking-wider uppercase text-slate-400">
+              Access Level
+            </div>
+            <div className="text-sm font-extrabold text-slate-900 mt-0.5">
+              ● {isSuperAdmin ? "Super Admin" : "Standard Admin"}
+            </div>
+            <div className="text-xs font-semibold text-emerald-600 mt-0.5">
+              Connected (asia-southeast1)
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Section 1: Account Information & Profile Edit */}
-          <div className="w-full bg-white border border-slate-300 rounded-2xl shadow-card p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-slate-900">Administrator Profile</h2>
-            <p className="mt-1 text-xs text-slate-600">
+          <div className="w-full bg-white border border-slate-200 rounded-3xl shadow-xs p-6 sm:p-7">
+            <h2 className="text-lg font-extrabold text-slate-900">Administrator Profile</h2>
+            <p className="mt-1 text-xs text-slate-500 leading-relaxed">
               Your name is attached to recipe reviews, local price updates, and activity logs.
             </p>
 
             {profileSuccess && (
               <div
                 role="status"
-                className="mt-3.5 px-3.5 py-3 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm"
+                className="mt-4 px-3.5 py-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold"
               >
                 ✓ {profileSuccess}
               </div>
@@ -233,7 +247,7 @@ export default function AdminProfile({
             {profileError && (
               <div
                 role="alert"
-                className="mt-3.5 px-3.5 py-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm"
+                className="mt-4 px-3.5 py-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold"
               >
                 {profileError}
               </div>
@@ -242,19 +256,19 @@ export default function AdminProfile({
             <form
               onSubmit={handleProfileSubmit}
               noValidate
-              className="flex flex-col gap-4 mt-4"
+              className="flex flex-col gap-4 mt-5"
             >
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="admin-name"
-                  className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+                  className="text-xs font-bold tracking-wider uppercase text-slate-800"
                 >
                   Display Name
                 </label>
                 <input
                   id="admin-name"
                   type="text"
-                  className="w-full h-11 px-3.5 bg-white border border-slate-300 rounded-lg text-[0.92rem] text-slate-900 outline-none hover:border-slate-400 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
+                  className="w-full h-12 px-3.5 bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-[0.95rem] text-slate-900 outline-none hover:border-slate-300 focus:border-amber-500 focus:shadow-amber-ring transition-all disabled:opacity-60"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   disabled={isUpdatingProfile}
@@ -262,27 +276,27 @@ export default function AdminProfile({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900">
-                  Administrative Email{" "}
-                  <span className="text-xs font-medium text-slate-500">
+                <label className="flex justify-between items-baseline text-xs font-bold tracking-wider uppercase text-slate-800">
+                  <span>Administrative Email</span>
+                  <span className="text-[11px] font-medium normal-case text-slate-400">
                     Managed via root console
                   </span>
                 </label>
                 <input
                   type="text"
-                  className="w-full h-11 px-3.5 bg-slate-50 border border-slate-300 rounded-lg text-[0.92rem] text-slate-600 opacity-75 cursor-not-allowed"
+                  className="w-full h-12 px-3.5 bg-slate-100 border border-slate-200 rounded-xl text-[0.95rem] text-slate-500 cursor-not-allowed"
                   value={user?.email || ""}
                   disabled
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900">
+                <label className="text-xs font-bold tracking-wider uppercase text-slate-800">
                   Assigned Operational Role
                 </label>
                 <input
                   type="text"
-                  className="w-full h-11 px-3.5 bg-slate-50 border border-slate-300 rounded-lg text-[0.92rem] font-semibold text-slate-700 opacity-75 cursor-not-allowed"
+                  className="w-full h-12 px-3.5 bg-slate-100 border border-slate-200 rounded-xl text-[0.95rem] font-bold text-slate-700 cursor-not-allowed"
                   value={
                     isSuperAdmin
                       ? "Super Admin — Platform Director"
@@ -294,7 +308,7 @@ export default function AdminProfile({
 
               <button
                 type="submit"
-                className="self-start mt-1 h-11 px-5 bg-amber-500 hover:bg-amber-600 border border-amber-600 rounded-lg text-[0.92rem] font-semibold text-white shadow-sm inline-flex items-center justify-center transition-all disabled:opacity-55 focus-visible:outline-none focus-visible:shadow-amber-ring"
+                className="w-full sm:w-auto self-start mt-2 h-12 px-6 bg-amber-500 hover:bg-amber-600 rounded-2xl text-sm font-bold text-white shadow-sm inline-flex items-center justify-center transition-all disabled:opacity-55 cursor-pointer"
                 disabled={isUpdatingProfile}
               >
                 {isUpdatingProfile ? "Saving..." : "Save Profile Changes"}
@@ -303,16 +317,16 @@ export default function AdminProfile({
           </div>
 
           {/* Section 2: Password Management */}
-          <div className="w-full bg-white border border-slate-300 rounded-2xl shadow-card p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-slate-900">Password & Security</h2>
-            <p className="mt-1 text-xs text-slate-600">
+          <div className="w-full bg-white border border-slate-200 rounded-3xl shadow-xs p-6 sm:p-7">
+            <h2 className="text-lg font-extrabold text-slate-900">Password & Security</h2>
+            <p className="mt-1 text-xs text-slate-500 leading-relaxed">
               Update your administrative sign-in password with strict credential validation.
             </p>
 
             {passwordSuccess && (
               <div
                 role="status"
-                className="mt-3.5 px-3.5 py-3 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm"
+                className="mt-4 px-3.5 py-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold"
               >
                 ✓ {passwordSuccess}
               </div>
@@ -320,7 +334,7 @@ export default function AdminProfile({
             {passwordError && (
               <div
                 role="alert"
-                className="mt-3.5 px-3.5 py-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm"
+                className="mt-4 px-3.5 py-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold"
               >
                 {passwordError}
               </div>
@@ -329,12 +343,12 @@ export default function AdminProfile({
             <form
               onSubmit={handlePasswordSubmit}
               noValidate
-              className="flex flex-col gap-4 mt-4"
+              className="flex flex-col gap-4 mt-5"
             >
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="admin-current-pw"
-                  className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+                  className="text-xs font-bold tracking-wider uppercase text-slate-800"
                 >
                   Current Password
                 </label>
@@ -351,10 +365,9 @@ export default function AdminProfile({
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="admin-new-pw"
-                  className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+                  className="text-xs font-bold tracking-wider uppercase text-slate-800"
                 >
-                  New Password{" "}
-                  <span className="text-xs font-medium text-slate-500">min. 8 characters</span>
+                  New Password
                 </label>
                 <PasswordInput
                   id="admin-new-pw"
@@ -364,13 +377,44 @@ export default function AdminProfile({
                   disabled={isUpdatingPassword}
                   autoComplete="new-password"
                 />
-                <PasswordStrengthMeter password={newPassword} />
+              </div>
+
+              {/* Password requirements box matching mobile SignupScreen */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="text-xs font-bold text-slate-700 mb-2">
+                  Password requirements:
+                </div>
+                <div className="grid grid-cols-2 gap-y-1.5 gap-x-2">
+                  {RULES.map(([key, label]) => {
+                    const ok = checks[key];
+                    return (
+                      <div key={key} className="flex items-center gap-2">
+                        <span
+                          className={`w-3.5 h-3.5 rounded-full grid place-items-center text-[9px] font-extrabold transition-colors ${
+                            ok
+                              ? "bg-emerald-600 text-white"
+                              : "bg-slate-200 text-transparent"
+                          }`}
+                        >
+                          ✓
+                        </span>
+                        <span
+                          className={`text-xs transition-colors ${
+                            ok ? "text-emerald-700 font-semibold" : "text-slate-500"
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label
                   htmlFor="admin-confirm-new-pw"
-                  className="flex justify-between items-baseline text-[0.83rem] font-semibold text-slate-900"
+                  className="text-xs font-bold tracking-wider uppercase text-slate-800"
                 >
                   Confirm New Password
                 </label>
@@ -386,7 +430,7 @@ export default function AdminProfile({
 
               <button
                 type="submit"
-                className="self-start mt-1 h-11 px-5 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg text-[0.92rem] font-semibold text-slate-900 inline-flex items-center justify-center transition-all disabled:opacity-55"
+                className="w-full sm:w-auto self-start mt-1 h-12 px-6 bg-slate-900 hover:bg-slate-800 rounded-2xl text-sm font-bold text-white inline-flex items-center justify-center transition-all disabled:opacity-55 cursor-pointer"
                 disabled={isUpdatingPassword}
               >
                 {isUpdatingPassword ? "Updating..." : "Update Password"}
@@ -396,7 +440,6 @@ export default function AdminProfile({
         </div>
       </main>
 
-      {/* Shared Confirmation Modal */}
       <ConfirmationModal
         isOpen={modalConfig.isOpen}
         onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}

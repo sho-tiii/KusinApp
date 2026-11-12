@@ -3,6 +3,8 @@ import {
   signInWithEmailAndPassword,
   signInWithCredential,
   GoogleAuthProvider,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -85,43 +87,45 @@ export function calculateBMR(weightKg, heightCm, age, gender = "male") {
 }
 
 /* ------------------------------------------------------------------ */
-/* Signup email verification (4-digit code)                            */
+/* Email Verification Link & Password Reset Link                       */
 /* ------------------------------------------------------------------ */
 
-const DEV_VERIFICATION_CODE = "1234";
-const CODE_TTL_MS = 10 * 60 * 1000;
-let pendingVerification = null;
-
-export function requestSignupVerificationCode(email) {
-  const code = String(Math.floor(1000 + Math.random() * 9000));
-  pendingVerification = {
-    email: (email || "").trim().toLowerCase(),
-    code,
-    expiresAt: Date.now() + CODE_TTL_MS,
-  };
-  console.log(`[KusinApp Security] 4-digit signup code for ${email}: ${code}`);
-  return code;
+export async function sendVerificationEmailLink(userParam) {
+  const targetUser = userParam || auth.currentUser;
+  if (!targetUser) {
+    throw new Error("No active account found to send verification link.");
+  }
+  try {
+    await sendEmailVerification(targetUser);
+    return true;
+  } catch (err) {
+    // Handle rate limit gracefully
+    if (err?.code === "auth/too-many-requests") {
+      return true;
+    }
+    throw new Error(formatAuthError(err, "Failed to send verification link."));
+  }
 }
 
-export function verifySignupCode(email, enteredCode) {
-  const code = (enteredCode || "").trim();
-  if (code.length !== 4) {
-    throw new Error("Please enter the complete 4-digit code.");
+export async function sendMobilePasswordResetLink(email) {
+  const trimmedEmail = typeof email === "string" ? email.trim() : "";
+  if (!trimmedEmail || !EMAIL_REGEX.test(trimmedEmail)) {
+    throw new Error("Please enter a valid email address.");
   }
-  if (code === DEV_VERIFICATION_CODE) return true;
-  if (!pendingVerification) {
-    throw new Error("Verification session expired. Please request a new code.");
+  try {
+    await sendPasswordResetEmail(auth, trimmedEmail);
+    return true;
+  } catch (err) {
+    throw new Error(formatAuthError(err, "Failed to send password reset link."));
   }
-  if (pendingVerification.email !== (email || "").trim().toLowerCase()) {
-    throw new Error("The code was requested for a different email address.");
-  }
-  if (Date.now() > pendingVerification.expiresAt) {
-    throw new Error("This code has expired. Tap Resend to get a new one.");
-  }
-  if (pendingVerification.code !== code) {
-    throw new Error("Incorrect code. Please check and try again.");
-  }
-  pendingVerification = null;
+}
+
+// Keep legacy exports as no-op helpers in case referenced
+export function requestSignupVerificationCode(email) {
+  return "LINK";
+}
+
+export function verifySignupCode() {
   return true;
 }
 
@@ -153,13 +157,20 @@ export async function registerMobileUser(email, password, displayName, gender) {
 
     await updateProfile(user, { displayName: trimmedName });
 
+    // Dispatch standard Firebase email verification link immediately
+    try {
+      await sendEmailVerification(user);
+    } catch (_verifyErr) {
+      // Non-blocking if rate-limited
+    }
+
     const profile = {
       uid: user.uid,
       displayName: trimmedName,
       email: trimmedEmail,
-      gender: gender || "female",
+      gender: gender || "",
       role: "user",
-      emailVerified: true,
+      emailVerified: false,
       onboardingCompleted: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -312,9 +323,11 @@ export async function saveMobileOnboarding(uid, data) {
   const age = parseInt(data.age, 10);
   const height = parseFloat(data.heightCm);
   const weight = parseFloat(data.weightKg);
+  if (!data.gender) throw new Error("Please select your biological sex (Female or Male).");
   if (!age || age < 10 || age > 120) throw new Error("Please enter a valid age between 10 and 120.");
   if (!height || height < 50 || height > 250) throw new Error("Please enter a valid height between 50 and 250 cm.");
   if (!weight || weight < 20 || weight > 300) throw new Error("Please enter a valid weight between 20 and 300 kg.");
+  if (!data.weightGoal) throw new Error("Please select your weight goal (Maintain, Gain, or Lose).");
 
   const household = HOUSEHOLD_TO_PERSONA[data.household] || HOUSEHOLD_TO_PERSONA.just_me;
   const goals = Array.isArray(data.goals) ? data.goals : [];
@@ -323,18 +336,23 @@ export async function saveMobileOnboarding(uid, data) {
     : household.userPersona;
 
   const { bmi, category: bmiCategory } = calculateBMI(height, weight);
-  const bmr = calculateBMR(weight, height, age, data.gender || "female");
+  const bmr = calculateBMR(weight, height, age, data.gender);
+
+  const comorbidities =
+    Array.isArray(data.comorbidities) && data.comorbidities.length > 0
+      ? data.comorbidities
+      : ["none"];
 
   const payload = {
     age,
-    gender: data.gender || "female",
+    gender: data.gender,
     heightCm: height,
     weightKg: weight,
     bmi,
     bmiCategory,
     bmr,
-    weightGoal: data.weightGoal || "maintain",
-    comorbidities: ["none"],
+    weightGoal: data.weightGoal,
+    comorbidities,
     userPersona,
     householdSize: household.householdSize,
     household: data.household || "just_me",

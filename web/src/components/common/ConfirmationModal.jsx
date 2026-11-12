@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 /**
- * Reusable Confirmation Modal styled with Tailwind CSS matching the official KusinApp popup prototype.
+ * Reusable Confirmation Modal styled to match the unified KusinApp mobile & web design system.
  */
 export default function ConfirmationModal({
   isOpen,
@@ -16,12 +16,11 @@ export default function ConfirmationModal({
 }) {
   const confirmButtonRef = useRef(null);
 
-  // Close on Escape & trap focus
   useEffect(() => {
     if (!isOpen) return undefined;
 
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && !isLoading) {
+      if (e.key === "Escape" && !isLoading && onClose) {
         onClose();
       }
     };
@@ -39,11 +38,11 @@ export default function ConfirmationModal({
   const getConfirmButtonClasses = () => {
     switch (variant) {
       case "danger":
-        return "bg-chili-500 hover:bg-chili-600 border-chili-600 shadow-sm shadow-red-600/30";
+        return "bg-red-600 hover:bg-red-700 border-red-600";
       case "warning":
-        return "bg-amber-600 hover:bg-amber-700 border-amber-700 shadow-sm shadow-amber-600/30";
+        return "bg-amber-600 hover:bg-amber-700 border-amber-600";
       default:
-        return "bg-orange-600 hover:bg-orange-700 border-orange-700 shadow-sm shadow-orange-600/30";
+        return "bg-amber-500 hover:bg-amber-600 border-amber-500";
     }
   };
 
@@ -51,12 +50,12 @@ export default function ConfirmationModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-sm animate-fade-in"
       onClick={() => {
-        if (!isLoading) onClose();
+        if (!isLoading && onClose) onClose();
       }}
       role="presentation"
     >
       <div
-        className="w-full max-w-[480px] bg-white border border-slate-200 rounded-3xl shadow-modal p-6 sm:p-8 flex flex-col gap-3 animate-scale-in"
+        className="w-full max-w-[440px] bg-white border border-slate-200 rounded-3xl shadow-modal p-6 sm:p-7 flex flex-col gap-3 animate-scale-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="k-popup-title"
@@ -67,53 +66,62 @@ export default function ConfirmationModal({
         <div className="flex items-center justify-between gap-3">
           <h2
             id="k-popup-title"
-            className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight m-0"
+            className="text-xl font-extrabold text-slate-900 tracking-tight m-0"
           >
             {title}
           </h2>
-          <button
-            type="button"
-            className="grid place-items-center w-8 h-8 -mr-1 rounded-full bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors disabled:opacity-50"
-            onClick={onClose}
-            disabled={isLoading}
-            aria-label="Close dialog"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {onClose && (
+            <button
+              type="button"
+              className="grid place-items-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors disabled:opacity-50 cursor-pointer"
+              onClick={onClose}
+              disabled={isLoading}
+              aria-label="Close dialog"
             >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Message body */}
-        <div id="k-popup-description" className="text-[0.95rem] text-slate-600 leading-relaxed mt-1">
-          {message}
-        </div>
-
-        {/* Bottom pill actions */}
-        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 mt-5">
-          <button
-            type="button"
-            className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 bg-white border border-slate-300 rounded-full text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-900 transition-all disabled:opacity-50"
-            onClick={onClose}
-            disabled={isLoading}
+        {message && (
+          <div
+            id="k-popup-description"
+            className="text-sm text-slate-600 leading-relaxed mt-0.5"
           >
-            {cancelText}
-          </button>
+            {message}
+          </div>
+        )}
+
+        {/* Bottom actions (rounded-xl, no vibe-coded pill buttons) */}
+        <div className="flex items-center justify-end gap-2.5 mt-4">
+          {cancelText ? (
+            <button
+              type="button"
+              className="flex-1 inline-flex items-center justify-center h-11 px-5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 cursor-pointer"
+              onClick={onClose}
+              disabled={isLoading}
+            >
+              {cancelText}
+            </button>
+          ) : null}
           <button
             ref={confirmButtonRef}
             type="button"
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 border rounded-full text-sm font-bold text-white transition-all disabled:opacity-55 ${getConfirmButtonClasses()}`}
-            onClick={onConfirm}
+            className={`flex-1 inline-flex items-center justify-center gap-2 h-11 px-5 border rounded-xl text-sm font-bold text-white transition-all disabled:opacity-55 cursor-pointer ${getConfirmButtonClasses()}`}
+            onClick={onConfirm || onClose}
             disabled={isLoading}
           >
             {isLoading && (

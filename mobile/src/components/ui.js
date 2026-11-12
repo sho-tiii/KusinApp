@@ -3,6 +3,7 @@ import {
   Animated,
   Easing,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TextInput,
@@ -89,6 +90,15 @@ export function Icon({ name, size = 18, color = colors.ink, style }) {
     return (
       <Text style={[{ fontSize: size * 1.2, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
         +
+      </Text>
+    );
+  }
+
+  // Close: ×
+  if (name === "close" || name === "x") {
+    return (
+      <Text style={[{ fontSize: size * 1.35, fontWeight: "700", color, lineHeight: size * 1.2 }, style]}>
+        ×
       </Text>
     );
   }
@@ -697,6 +707,185 @@ export function WarmGlow({ size = 320, style }) {
   );
 }
 
+/**
+ * Shared ConfirmationModal matching web ConfirmationModal.jsx.
+ * Replaces native OS Alert.alert with a cohesive KusinApp dialog.
+ */
+export function ConfirmationModal({
+  visible,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  variant = "primary",
+  loading = false,
+}) {
+  if (!visible) return null;
+
+  const confirmBg =
+    variant === "danger"
+      ? colors.red
+      : variant === "warning"
+      ? colors.primaryDark
+      : colors.primary;
+
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+      onRequestClose={() => {
+        if (!loading && onClose) onClose();
+      }}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => {
+          if (!loading && onClose) onClose();
+        }}
+        style={styles.modalBackdrop}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {}}
+          style={styles.modalDialog}
+        >
+          <View style={styles.modalHeaderRow}>
+            <Text style={styles.modalDialogTitle}>{title}</Text>
+            {onClose ? (
+              <TouchableOpacity
+                onPress={onClose}
+                disabled={loading}
+                style={styles.modalCloseBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Icon name="close" size={18} color={colors.inkMuted} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {message ? (
+            <Text style={styles.modalDialogBody}>{message}</Text>
+          ) : null}
+
+          <View style={styles.modalActionsRow}>
+            {cancelText ? (
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={onClose}
+                disabled={loading}
+                style={styles.modalCancelBtn}
+              >
+                <Text style={styles.modalCancelText}>{cancelText}</Text>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={onConfirm || onClose}
+              disabled={loading}
+              style={[
+                styles.modalConfirmBtn,
+                { backgroundColor: confirmBg },
+                !cancelText && { flex: 1 },
+              ]}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.modalConfirmText}>{confirmText}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+
+/**
+ * Shared SelectModal matching web Select.jsx custom dropdown / sheet.
+ */
+export function SelectModal({
+  visible,
+  onClose,
+  title = "Select an option",
+  options = [],
+  value,
+  onChange,
+}) {
+  if (!visible) return null;
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onClose}
+        style={styles.modalBackdrop}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {}}
+          style={styles.modalDialog}
+        >
+          <View style={styles.modalHeaderRow}>
+            <Text style={styles.modalDialogTitle}>{title}</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.modalCloseBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon name="close" size={18} color={colors.inkMuted} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ marginTop: 8 }}>
+            {options.map((opt) => {
+              const selected = opt.value === value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  activeOpacity={0.82}
+                  onPress={() => {
+                    onChange && onChange(opt.value);
+                    onClose && onClose();
+                  }}
+                  style={[
+                    styles.selectOptionItem,
+                    selected && styles.selectOptionItemSelected,
+                  ]}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.selectOptionLabel,
+                        selected && { color: colors.primaryDark, fontWeight: "700" },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                    {opt.description ? (
+                      <Text style={styles.selectOptionDesc}>{opt.description}</Text>
+                    ) : null}
+                  </View>
+                  {selected ? (
+                    <Icon name="check" size={16} color={colors.primaryDark} />
+                  ) : null}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+
 export const styles = StyleSheet.create({
   primaryBtn: {
     height: 54,
@@ -762,4 +951,109 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
   errorText: { color: colors.red, fontSize: 13, fontWeight: "600", textAlign: "center" },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(16, 24, 40, 0.48)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 22,
+  },
+  modalDialog: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 22,
+    ...shadow.card,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalDialogTitle: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: colors.ink,
+    flex: 1,
+    paddingRight: 8,
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalDialogBody: {
+    fontSize: 14.5,
+    color: colors.inkMuted,
+    lineHeight: 21,
+    marginTop: 10,
+  },
+  modalActionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 22,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1.2,
+    borderColor: colors.border,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  modalCancelText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: colors.inkMuted,
+  },
+  modalConfirmBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  modalConfirmText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  selectOptionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  selectOptionItemSelected: {
+    backgroundColor: "#FFFBEB",
+    borderColor: colors.primary,
+  },
+  selectOptionLabel: {
+    fontSize: 15,
+    color: colors.ink,
+    fontWeight: "500",
+  },
+  selectOptionDesc: {
+    fontSize: 12,
+    color: colors.inkMuted,
+    marginTop: 2,
+  },
 });
+

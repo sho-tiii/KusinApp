@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -20,6 +19,7 @@ import {
   Icon,
   PrimaryButton,
   ScalePress,
+  SelectModal,
   StepIndicator,
 } from "../components/ui";
 import GoogleSignInButton from "../components/GoogleSignInButton";
@@ -34,14 +34,14 @@ const RULES = [
 ];
 
 const GENDER_OPTIONS = [
-  { value: "female", label: "Female" },
-  { value: "male", label: "Male" },
-  { value: "other", label: "Prefer not to say" },
+  { value: "female", label: "Female", description: "Used for baseline BMR & calorie calculations" },
+  { value: "male", label: "Male", description: "Used for baseline BMR & calorie calculations" },
+  { value: "other", label: "Prefer not to say", description: "Standard average calorie baseline" },
 ];
 
 export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
   const [name, setName] = useState(initial?.name || "");
-  const [gender, setGender] = useState(initial?.gender || "female");
+  const [gender, setGender] = useState(initial?.gender || "");
   const [genderModal, setGenderModal] = useState(false);
   const [email, setEmail] = useState(initial?.email || "");
   const [password, setPassword] = useState(initial?.password || "");
@@ -49,8 +49,7 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
   const [error, setError] = useState("");
   const checks = getPasswordChecks(password);
 
-  const selectedGenderLabel =
-    GENDER_OPTIONS.find((g) => g.value === gender)?.label || "Female";
+  const selectedGenderObj = GENDER_OPTIONS.find((g) => g.value === gender);
 
   const submit = () => {
     setError("");
@@ -94,16 +93,23 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               icon="user"
               value={name}
               onChangeText={setName}
-              placeholder="Ashley Alcantara"
+              placeholder="Juan Dela Cruz"
               autoCapitalize="words"
             />
 
-            <Text style={styles.label}>GENDER</Text>
+            <Text style={styles.label}>BIOLOGICAL SEX (OPTIONAL)</Text>
             <ScalePress
               onPress={() => setGenderModal(true)}
               style={styles.genderDropdown}
             >
-              <Text style={styles.genderDropdownText}>{selectedGenderLabel}</Text>
+              <Text
+                style={[
+                  styles.genderDropdownText,
+                  !selectedGenderObj && { color: colors.inkSubtle, fontWeight: "400" },
+                ]}
+              >
+                {selectedGenderObj ? selectedGenderObj.label : "Select biological sex"}
+              </Text>
               <Icon name="chevron-down" size={18} color={colors.inkMuted} />
             </ScalePress>
 
@@ -112,7 +118,7 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               icon="at-sign"
               value={email}
               onChangeText={setEmail}
-              placeholder="ashley@gmail.com"
+              placeholder="juan@example.com"
               keyboardType="email-address"
             />
             <Field
@@ -144,7 +150,7 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
 
           <FadeIn delay={170}>
             <PrimaryButton
-              title="Next Step"
+              title="Create Account & Send Link"
               onPress={submit}
               style={{ marginTop: 4 }}
             />
@@ -162,46 +168,14 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal
+      <SelectModal
         visible={genderModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setGenderModal(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <FadeIn from={24} style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Select Gender</Text>
-            {GENDER_OPTIONS.map((opt) => {
-              const active = gender === opt.value;
-              return (
-                <ScalePress
-                  key={opt.value}
-                  onPress={() => {
-                    setGender(opt.value);
-                    setGenderModal(false);
-                  }}
-                  style={[
-                    styles.modalOption,
-                    active && styles.modalOptionActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      active && { color: colors.primaryDark, fontWeight: "700" },
-                    ]}
-                  >
-                    {opt.label}
-                  </Text>
-                  {active ? (
-                    <Icon name="check" size={16} color={colors.primaryDark} />
-                  ) : null}
-                </ScalePress>
-              );
-            })}
-          </FadeIn>
-        </View>
-      </Modal>
+        onClose={() => setGenderModal(false)}
+        title="Select Biological Sex"
+        options={GENDER_OPTIONS}
+        value={gender}
+        onChange={setGender}
+      />
     </SafeAreaView>
   );
 }
@@ -271,8 +245,8 @@ const styles = StyleSheet.create({
     marginBottom: 7,
   },
   genderDropdown: {
-    width: "52%",
-    height: 46,
+    width: "100%",
+    height: 48,
     borderRadius: 12,
     borderWidth: 1.2,
     borderColor: colors.border,
@@ -332,37 +306,4 @@ const styles = StyleSheet.create({
   link: { color: colors.primaryDark, fontWeight: "700", fontSize: 13 },
   muted: { color: colors.inkMuted, fontSize: 13 },
   bottomRow: { flexDirection: "row", justifyContent: "center", marginTop: 18 },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(16, 24, 40, 0.45)",
-    justifyContent: "center",
-    paddingHorizontal: 28,
-  },
-  modalSheet: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: colors.ink,
-    marginBottom: 12,
-  },
-  modalOption: {
-    height: 48,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  modalOptionActive: {
-    backgroundColor: "#FFFBEB",
-  },
-  modalOptionText: {
-    fontSize: 15,
-    color: colors.ink,
-  },
 });
