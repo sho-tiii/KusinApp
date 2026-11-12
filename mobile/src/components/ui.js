@@ -10,6 +10,7 @@ import {
   View,
   ActivityIndicator,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { colors, shadow } from "../theme";
 
@@ -207,24 +208,21 @@ export function FadeIn({ delay = 0, from = 16, duration = 420, style, children }
   );
 }
 
-/** Pressable that springs down slightly when touched. */
-export function ScalePress({ onPress, disabled, style, children, scaleTo = 0.97, ...rest }) {
-  const s = useRef(new Animated.Value(1)).current;
-  const to = (val) =>
-    Animated.spring(s, { toValue: val, friction: 6, tension: 220, useNativeDriver: true }).start();
+/** Touch component with smooth native active opacity that preserves flex layout */
+export function ScalePress({ onPress, disabled, style, children, activeOpacity = 0.82, ...rest }) {
   return (
-    <Pressable
-      onPressIn={() => to(scaleTo)}
-      onPressOut={() => to(1)}
+    <TouchableOpacity
+      activeOpacity={activeOpacity}
       onPress={(e) => {
         if (disabled) return;
         onPress && onPress(e);
       }}
       disabled={disabled}
+      style={style}
       {...rest}
     >
-      <Animated.View style={[style, { transform: [{ scale: s }] }]}>{children}</Animated.View>
-    </Pressable>
+      {children}
+    </TouchableOpacity>
   );
 }
 

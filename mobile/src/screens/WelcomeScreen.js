@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -171,13 +172,21 @@ export default function WelcomeScreen({ onLogin, onSignup }) {
       </View>
 
       <View style={styles.actions}>
-        <ScalePress onPress={onLogin} style={[styles.btn, styles.loginBtn]}>
+        <TouchableOpacity
+          activeOpacity={0.82}
+          onPress={onLogin}
+          style={[styles.btn, styles.loginBtn]}
+        >
           <Text style={styles.loginText}>Login</Text>
-        </ScalePress>
-        <ScalePress onPress={onSignup} style={[styles.btn, styles.signupBtn]}>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.82}
+          onPress={onSignup}
+          style={[styles.btn, styles.signupBtn]}
+        >
           <Text style={styles.signupText}>Sign up</Text>
           <Icon name="arrow-right" size={18} color={colors.ink} style={{ marginLeft: 8 }} />
-        </ScalePress>
+        </TouchableOpacity>
       </View>
       <Text style={styles.footer}>Cook with joy • Less prep, zero stress</Text>
     </SafeAreaView>
@@ -229,7 +238,14 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   dot: { height: 7, borderRadius: 4, marginHorizontal: 4 },
-  actions: { flexDirection: "row", paddingHorizontal: 24, gap: 14 },
+  actions: {
+    flexDirection: "row",
+    paddingHorizontal: 24,
+    gap: 14,
+    width: "100%",
+    minHeight: 52,
+    alignItems: "center",
+  },
   btn: {
     flex: 1,
     height: 52,
