@@ -33,14 +33,21 @@ export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Initialize Auth with AsyncStorage persistence for React Native
 let authInstance;
 try {
-  authInstance =
-    typeof getReactNativePersistence === "function"
-      ? initializeAuth(app, {
-          persistence: getReactNativePersistence(AsyncStorage),
-        })
-      : getAuth(app);
+  const persistence =
+    typeof getReactNativePersistence === "function" && AsyncStorage
+      ? getReactNativePersistence(AsyncStorage)
+      : undefined;
+
+  authInstance = persistence
+    ? initializeAuth(app, { persistence })
+    : getAuth(app);
 } catch (e) {
-  authInstance = getAuth(app);
+  try {
+    authInstance = getAuth(app);
+  } catch (_fallbackErr) {
+    console.warn("Firebase Auth fallback initialization failed:", _fallbackErr);
+    authInstance = null;
+  }
 }
 
 export const auth = authInstance;

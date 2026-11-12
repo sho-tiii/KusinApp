@@ -32,4 +32,47 @@ if (!http.Server.prototype.__kusinappHeaderSanitizerInstalled) {
 
 const config = getDefaultConfig(__dirname);
 
+/**
+ * Workaround for Firebase "dual-package hazard" in Expo / React Native:
+ * Metro loads Firebase Web ESM for `firebase/*` imports while `@firebase/auth`
+ * uses CJS `require('@firebase/app')`, resulting in duplicate instances of @firebase/app
+ * and "Error: Component auth has not been registered yet".
+ *
+ * By intercepting `firebase/*` and `@firebase/*` and enforcing `isESMImport: false`,
+ * Metro loads the unified React Native CJS entry points for all Firebase modules so
+ * `app`, `auth`, and `database` share the exact same singleton component container.
+ */
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === "firebase/app") {
+    return context.resolveRequest(
+      { ...context, isESMImport: false },
+      "@firebase/app",
+      platform
+    );
+  }
+  if (moduleName === "firebase/auth") {
+    return context.resolveRequest(
+      { ...context, isESMImport: false },
+      "@firebase/auth",
+      platform
+    );
+  }
+  if (moduleName === "firebase/database") {
+    return context.resolveRequest(
+      { ...context, isESMImport: false },
+      "@firebase/database",
+      platform
+    );
+  }
+  if (moduleName.startsWith("@firebase/")) {
+    return context.resolveRequest(
+      { ...context, isESMImport: false },
+      moduleName,
+      platform
+    );
+  }
+
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;
