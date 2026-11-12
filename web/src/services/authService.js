@@ -156,6 +156,7 @@ export async function registerUser(email, password, displayName, gender = "", ro
       email: trimmedEmail,
       gender: gender || "",
       role: role,
+      agreedToTerms: true,
       emailVerified: false,
       onboardingCompleted: false,
       createdAt: serverTimestamp(),

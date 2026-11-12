@@ -21,6 +21,7 @@ export default function GoogleSignInButton({
   title = "Continue with Google",
   onSuccess,
   onError,
+  beforePress,
 }) {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -31,6 +32,9 @@ export default function GoogleSignInButton({
 
   // Instant 1-tap Google Sign-In
   const handleDirectGoogleSignIn = async () => {
+    if (typeof beforePress === "function" && !beforePress()) {
+      return;
+    }
     setLoading(true);
     setErrorMsg("");
     try {

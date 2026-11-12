@@ -170,6 +170,7 @@ export async function registerMobileUser(email, password, displayName, gender) {
       email: trimmedEmail,
       gender: gender || "",
       role: "user",
+      agreedToTerms: true,
       emailVerified: false,
       onboardingCompleted: false,
       createdAt: serverTimestamp(),

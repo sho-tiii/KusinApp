@@ -198,7 +198,20 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
             />
 
             <Divider label={"OR\nCONTINUE\nWITH"} />
-            <GoogleSignInButton title="Sign up with Google" onError={setError} />
+            <GoogleSignInButton
+              title="Sign up with Google"
+              onError={setError}
+              beforePress={() => {
+                if (!agreedTerms) {
+                  setError(
+                    "Please check the Terms & Conditions and Privacy Policy box first before signing up with Google."
+                  );
+                  return false;
+                }
+                setError("");
+                return true;
+              }}
+            />
 
             <View style={styles.bottomRow}>
               <Text style={styles.muted}>Already have an account? </Text>
