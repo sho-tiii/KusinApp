@@ -52,32 +52,23 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
   const [password, setPassword] = useState(initial?.password || "");
   const [confirm, setConfirm] = useState(initial?.password || "");
 
-  // Require user to open, read, and agree to BOTH Terms & Conditions and Privacy Policy
-  const [agreedTermsDoc, setAgreedTermsDoc] = useState(false);
-  const [agreedPrivacyDoc, setAgreedPrivacyDoc] = useState(false);
-  const [activeDocModal, setActiveDocModal] = useState(null); // "terms" | "privacy" | null
+  // Single unified Terms & Conditions and Privacy Policy modal state
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [termsModal, setTermsModal] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const checks = getPasswordChecks(password);
 
-  const agreedBoth = agreedTermsDoc && agreedPrivacyDoc;
   const selectedGenderObj = GENDER_OPTIONS.find((g) => g.value === gender);
 
   const handleCheckboxPress = () => {
-    if (agreedBoth) {
-      // Allow unchecking if already agreed to both
-      setAgreedTermsDoc(false);
-      setAgreedPrivacyDoc(false);
+    if (agreedTerms) {
+      setAgreedTerms(false);
       return;
     }
-    if (!agreedTermsDoc) {
-      setActiveDocModal("terms");
-      return;
-    }
-    if (!agreedPrivacyDoc) {
-      setActiveDocModal("privacy");
-    }
+    // Directly open unified modal to review & agree
+    setTermsModal(true);
   };
 
   const submit = async () => {
@@ -88,10 +79,12 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
       return setError("Your password doesn't meet all the requirements yet.");
     }
     if (password !== confirm) return setError("Passwords do not match.");
-    if (!agreedBoth) {
-      return setError(
-        "Please read and agree to both the Terms & Conditions and Privacy Policy before creating your account."
+    if (!agreedTerms) {
+      setError(
+        "Please review and agree to the Terms & Conditions and Privacy Policy before creating your account."
       );
+      setTermsModal(true);
+      return;
     }
 
     setLoading(true);
@@ -194,17 +187,17 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               error={confirm.length > 0 && confirm !== password}
             />
 
-            {/* Terms & Conditions and Privacy Policy Checkbox (Must read & agree to both) */}
+            {/* Mandatory Unified Terms & Privacy Checkbox */}
             <View style={styles.termsRow}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={handleCheckboxPress}
                 style={[
                   styles.checkbox,
-                  agreedBoth && styles.checkboxChecked,
+                  agreedTerms && styles.checkboxChecked,
                 ]}
               >
-                {agreedBoth ? (
+                {agreedTerms ? (
                   <Text style={styles.checkboxMark}>✓</Text>
                 ) : null}
               </TouchableOpacity>
@@ -212,31 +205,13 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
                 <Text style={styles.termsText}>
                   I agree to the KusinApp{" "}
                   <Text
-                    style={[
-                      styles.termsLink,
-                      agreedTermsDoc && { color: colors.green },
-                    ]}
-                    onPress={() => setActiveDocModal("terms")}
+                    style={styles.termsLink}
+                    onPress={() => setTermsModal(true)}
                   >
-                    Terms & Conditions{agreedTermsDoc ? " ✓" : ""}
-                  </Text>{" "}
-                  and{" "}
-                  <Text
-                    style={[
-                      styles.termsLink,
-                      agreedPrivacyDoc && { color: colors.green },
-                    ]}
-                    onPress={() => setActiveDocModal("privacy")}
-                  >
-                    Privacy Policy{agreedPrivacyDoc ? " ✓" : ""}
+                    Terms & Conditions and Privacy Policy
                   </Text>
                   .
                 </Text>
-                {!agreedBoth && (
-                  <Text style={styles.termsHint}>
-                    Tap and agree to both links above to enable this checkbox.
-                  </Text>
-                )}
               </View>
             </View>
           </FadeIn>
@@ -254,10 +229,11 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
               title="Sign up with Google"
               onError={setError}
               beforePress={() => {
-                if (!agreedBoth) {
+                if (!agreedTerms) {
                   setError(
-                    "Please read and agree to both the Terms & Conditions and Privacy Policy first before signing up with Google."
+                    "Please check and agree to the Terms & Conditions and Privacy Policy first before signing up with Google."
                   );
+                  setTermsModal(true);
                   return false;
                 }
                 setError("");
@@ -284,46 +260,21 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
         onChange={setGender}
       />
 
-      {/* Chained Terms & Conditions -> Privacy Policy Modal */}
+      {/* Single Unified Terms & Conditions + Privacy Policy Modal */}
       <ConfirmationModal
-        visible={!!activeDocModal}
-        onClose={() => setActiveDocModal(null)}
+        visible={termsModal}
+        onClose={() => setTermsModal(false)}
         onConfirm={() => {
-          if (activeDocModal === "terms") {
-            setAgreedTermsDoc(true);
-            if (!agreedPrivacyDoc) {
-              setActiveDocModal("privacy");
-            } else {
-              setError("");
-              setActiveDocModal(null);
-            }
-          } else if (activeDocModal === "privacy") {
-            setAgreedPrivacyDoc(true);
-            if (!agreedTermsDoc) {
-              setActiveDocModal("terms");
-            } else {
-              setError("");
-              setActiveDocModal(null);
-            }
-          }
+          setAgreedTerms(true);
+          setError("");
+          setTermsModal(false);
         }}
-        title={
-          activeDocModal === "privacy"
-            ? "KusinApp Privacy Policy (2 of 2)"
-            : "KusinApp Terms & Conditions (1 of 2)"
-        }
+        title="Terms & Conditions and Privacy Policy"
         message={
-          activeDocModal === "privacy"
-            ? "KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
-            : "By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational and meal-planning purposes only and are not a substitute for professional medical or dietary advice."
+          "1. Terms & Conditions:\nBy creating a KusinApp account, you agree to use our Filipino meal planning, pantry management, and recipe recommendation platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational meal-planning purposes only and do not replace professional medical or dietary advice.\n\n" +
+          "2. Privacy Policy & Health Data:\nKusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
         }
-        confirmText={
-          activeDocModal === "terms" && !agreedPrivacyDoc
-            ? "I Agree • Next: Privacy Policy"
-            : activeDocModal === "privacy" && !agreedTermsDoc
-            ? "I Agree • Next: Terms"
-            : "I Agree"
-        }
+        confirmText="I Agree to All Terms"
         cancelText="Close"
       />
     </SafeAreaView>

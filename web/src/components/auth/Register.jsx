@@ -44,31 +44,23 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Require reading & agreeing to BOTH Terms & Conditions and Privacy Policy
-  const [agreedTermsDoc, setAgreedTermsDoc] = useState(false);
-  const [agreedPrivacyDoc, setAgreedPrivacyDoc] = useState(false);
-  const [activeDocModal, setActiveDocModal] = useState(null); // "terms" | "privacy" | null
+  // Single unified Terms & Conditions and Privacy Policy modal state
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
 
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const checks = useMemo(() => getPasswordChecks(password), [password]);
-  const agreedBoth = agreedTermsDoc && agreedPrivacyDoc;
 
   const handleCheckboxClick = (e) => {
     e.preventDefault();
-    if (agreedBoth) {
-      setAgreedTermsDoc(false);
-      setAgreedPrivacyDoc(false);
+    if (agreedTerms) {
+      setAgreedTerms(false);
       return;
     }
-    if (!agreedTermsDoc) {
-      setActiveDocModal("terms");
-      return;
-    }
-    if (!agreedPrivacyDoc) {
-      setActiveDocModal("privacy");
-    }
+    // Directly open unified modal to review & agree
+    setTermsModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
@@ -94,10 +86,11 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
       setFormError("Passwords do not match.");
       return;
     }
-    if (!agreedBoth) {
+    if (!agreedTerms) {
       setFormError(
-        "Please read and agree to both the KusinApp Terms & Conditions and Privacy Policy before creating your account."
+        "Please review and agree to the Terms & Conditions and Privacy Policy before creating your account."
       );
+      setTermsModalOpen(true);
       return;
     }
 
@@ -114,10 +107,11 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
 
   const handleGoogleSignUp = async () => {
     setFormError("");
-    if (!agreedBoth) {
+    if (!agreedTerms) {
       setFormError(
-        "Please read and agree to both the Terms & Conditions and Privacy Policy first before signing up with Google."
+        "Please check and agree to the Terms & Conditions and Privacy Policy first before signing up with Google."
       );
+      setTermsModalOpen(true);
       return;
     }
     setIsSubmitting(true);
@@ -279,20 +273,20 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
           />
         </div>
 
-        {/* Mandatory Terms & Conditions + Privacy Policy Dual-Read Checkbox */}
+        {/* Mandatory Unified Terms & Privacy Checkbox */}
         <div className="flex items-start gap-2.5 mt-1 mb-1">
           <button
             type="button"
             role="checkbox"
-            aria-checked={agreedBoth}
+            aria-checked={agreedTerms}
             onClick={handleCheckboxClick}
             className={`w-5 h-5 mt-0.5 rounded-md border flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-              agreedBoth
+              agreedTerms
                 ? "bg-amber-500 border-amber-500 text-white"
                 : "bg-white border-slate-300 hover:border-amber-500"
             }`}
           >
-            {agreedBoth && (
+            {agreedTerms && (
               <span className="text-xs font-extrabold leading-none">✓</span>
             )}
           </button>
@@ -301,30 +295,13 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
               I agree to the KusinApp{" "}
               <button
                 type="button"
-                onClick={() => setActiveDocModal("terms")}
-                className={`border-0 bg-transparent p-0 font-extrabold hover:underline cursor-pointer ${
-                  agreedTermsDoc ? "text-emerald-700" : "text-amber-700"
-                }`}
+                onClick={() => setTermsModalOpen(true)}
+                className="border-0 bg-transparent p-0 font-extrabold text-amber-700 hover:underline cursor-pointer"
               >
-                Terms &amp; Conditions{agreedTermsDoc ? " ✓" : ""}
-              </button>{" "}
-              and{" "}
-              <button
-                type="button"
-                onClick={() => setActiveDocModal("privacy")}
-                className={`border-0 bg-transparent p-0 font-extrabold hover:underline cursor-pointer ${
-                  agreedPrivacyDoc ? "text-emerald-700" : "text-amber-700"
-                }`}
-              >
-                Privacy Policy{agreedPrivacyDoc ? " ✓" : ""}
+                Terms &amp; Conditions and Privacy Policy
               </button>
               .
             </span>
-            {!agreedBoth && (
-              <div className="text-[11px] text-slate-400 mt-0.5">
-                Click and agree to both links above to check this box.
-              </div>
-            )}
           </div>
         </div>
 
@@ -386,48 +363,45 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
         </p>
       )}
 
-      {/* Chained Terms & Conditions -> Privacy Policy Modal */}
+      {/* Single Unified Terms & Conditions + Privacy Policy Modal */}
       <ConfirmationModal
-        isOpen={!!activeDocModal}
-        onClose={() => setActiveDocModal(null)}
+        isOpen={termsModalOpen}
+        onClose={() => setTermsModalOpen(false)}
         onConfirm={() => {
-          if (activeDocModal === "terms") {
-            setAgreedTermsDoc(true);
-            if (!agreedPrivacyDoc) {
-              setActiveDocModal("privacy");
-            } else {
-              setFormError("");
-              setActiveDocModal(null);
-            }
-          } else if (activeDocModal === "privacy") {
-            setAgreedPrivacyDoc(true);
-            if (!agreedTermsDoc) {
-              setActiveDocModal("terms");
-            } else {
-              setFormError("");
-              setActiveDocModal(null);
-            }
-          }
+          setAgreedTerms(true);
+          setFormError("");
+          setTermsModalOpen(false);
         }}
-        title={
-          activeDocModal === "privacy"
-            ? "KusinApp Privacy Policy (2 of 2)"
-            : "KusinApp Terms & Conditions (1 of 2)"
-        }
-        message={
-          activeDocModal === "privacy"
-            ? "KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties."
-            : "By creating a KusinApp account, you agree to use our Filipino meal planning and pantry management platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials. Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational and meal-planning purposes only and are not a substitute for professional medical or dietary advice."
-        }
-        confirmText={
-          activeDocModal === "terms" && !agreedPrivacyDoc
-            ? "I Agree • Next: Privacy Policy"
-            : activeDocModal === "privacy" && !agreedTermsDoc
-            ? "I Agree • Next: Terms"
-            : "I Agree"
-        }
+        maxWidth="max-w-[540px]"
+        title="Terms & Conditions and Privacy Policy"
+        confirmText="I Agree to All Terms"
         cancelText="Close"
-      />
+      >
+        <div className="flex flex-col gap-3.5 text-xs text-slate-600 leading-relaxed max-h-[50vh] overflow-y-auto pr-1">
+          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-1.5 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              1. Terms & Conditions
+            </h4>
+            <p className="m-0">
+              By creating a KusinApp account, you agree to use our Filipino meal planning, pantry management, and recipe recommendation platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials.
+            </p>
+            <p className="mt-2 m-0 text-slate-500 italic">
+              Note: Nutritional estimates, calorie targets, and recipe suggestions provided by KusinApp are for informational meal-planning purposes only and do not replace professional medical or dietary advice.
+            </p>
+          </div>
+
+          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-1.5 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              2. Privacy Policy & Health Data
+            </h4>
+            <p className="m-0">
+              KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties.
+            </p>
+          </div>
+        </div>
+      </ConfirmationModal>
     </div>
   );
 }

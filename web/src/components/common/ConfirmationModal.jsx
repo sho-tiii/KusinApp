@@ -9,10 +9,12 @@ export default function ConfirmationModal({
   onConfirm,
   title,
   message,
+  children,
   confirmText = "Confirm",
   cancelText = "Cancel",
   variant = "primary",
   isLoading = false,
+  maxWidth = "max-w-[480px]",
 }) {
   const confirmButtonRef = useRef(null);
 
@@ -55,7 +57,7 @@ export default function ConfirmationModal({
       role="presentation"
     >
       <div
-        className="w-full max-w-[440px] bg-white border border-slate-200 rounded-3xl shadow-modal p-6 sm:p-7 flex flex-col gap-3 animate-scale-in"
+        className={`w-full ${maxWidth} bg-white border border-slate-200 rounded-3xl shadow-modal p-6 sm:p-7 flex flex-col gap-3 animate-scale-in max-h-[90vh] overflow-y-auto`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="k-popup-title"
@@ -104,6 +106,8 @@ export default function ConfirmationModal({
             {message}
           </div>
         )}
+
+        {children}
 
         {/* Bottom actions (rounded-xl, no vibe-coded pill buttons) */}
         <div className="flex items-center justify-end gap-2.5 mt-4">
