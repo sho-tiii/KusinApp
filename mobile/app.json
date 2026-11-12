@@ -2,7 +2,6 @@
   "expo": {
     "name": "KusinApp",
     "slug": "kusinapp",
-    "scheme": "kusinapp",
     "version": "1.0.0",
     "sdkVersion": "51.0.0",
     "orientation": "portrait",
