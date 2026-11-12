@@ -49,7 +49,6 @@ export default function LoginScreen({ onBack, onSignup }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <WarmGlow size={420} style={{ top: -170, right: -170 }} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}

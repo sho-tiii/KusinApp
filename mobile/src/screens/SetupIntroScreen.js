@@ -29,10 +29,8 @@ export default function SetupIntroScreen({ name, onBack, onStart, onLater }) {
   const first = (name || "Chef").split(" ")[0];
   return (
     <SafeAreaView style={styles.container}>
-      <WarmGlow size={420} style={{ top: -160, right: -180 }} />
       <View style={styles.topRow}>
-        {onBack ? <BackButton variant="circle" onPress={onBack} /> : null}
-        <Image source={LOGO_ICON} style={styles.logo} resizeMode="contain" />
+        {onBack ? <BackButton variant="circle" onPress={onBack} /> : <View style={{ width: 44, height: 44 }} />}
       </View>
 
       <FadeIn from={30} style={{ alignItems: "center" }}>

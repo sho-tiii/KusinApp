@@ -3,7 +3,6 @@ import {
   Animated,
   Easing,
   Image,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -15,62 +14,95 @@ import {
 import { colors, shadow } from "../theme";
 
 export const LOGO_ICON = require("../../assets/logo-stacked.png");
-
-export function tap(_style = "light") {
-  // Lightweight no-op/safe tactile hook without requiring extra native modules
-}
+const GOOGLE_G = require("../../assets/google-g.png");
 
 /**
- * Pure React Native Icon component that renders crisp icons for all screens
- * without requiring @expo/vector-icons or external font files.
+ * Pure geometric vector icons with ZERO emojis.
+ * Clean, minimalist, and aligned with standard iOS/Android design systems.
  */
 export function Icon({ name, size = 18, color = colors.ink, style }) {
-  const glyphMap = {
-    "arrow-right": "→",
-    "arrow-left": "←",
-    "chevron-left": "‹",
-    "chevron-right": "›",
-    "chevron-down": "⌄",
-    check: "✓",
-    "check-circle": "✓",
-    "check-decagram": "✓",
-    user: "👤",
-    "at-sign": "@",
-    mail: "✉",
-    lock: "🔒",
-    shield: "🛡",
-    eye: "👁",
-    "eye-off": "◡",
-    "alert-circle": "!",
-    delete: "⌫",
-    coffee: "🪑",
-    table: "🪑",
-    heart: "♡",
-    award: "🥄",
-    taste: "🥄",
-    "lightbulb-outline": "💡",
-    "chef-hat": "👩🏻‍🍳",
-    "piggy-bank-outline": "🐷",
-    "trash-can-outline": "🗑",
-    carrot: "🥕",
-    "clock-outline": "🕒",
-    "gender-female": "♀",
-    "gender-male": "♂",
-    "scale-balance": "⚖",
-    "trending-up": "↗",
-    fire: "🔥",
-    "menu-down": "▾",
-    info: "ⓘ",
-    minus: "−",
-    plus: "+",
-    "silverware-fork-knife": "🍴",
-    "star-four-points": "✦",
-    "log-out": "↪",
-    sliders: "⚙",
-    calendar: "📅",
-  };
+  // Arrow right: →
+  if (name === "arrow-right") {
+    return (
+      <Text style={[{ fontSize: size, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
+        →
+      </Text>
+    );
+  }
 
-  // Custom drawn eye icon for password visibility toggle
+  // Arrow left: ←
+  if (name === "arrow-left") {
+    return (
+      <Text style={[{ fontSize: size, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
+        ←
+      </Text>
+    );
+  }
+
+  // Chevron left: ‹
+  if (name === "chevron-left") {
+    return (
+      <Text style={[{ fontSize: size * 1.4, fontWeight: "700", color, lineHeight: size * 1.4 }, style]}>
+        ‹
+      </Text>
+    );
+  }
+
+  // Chevron right: ›
+  if (name === "chevron-right") {
+    return (
+      <Text style={[{ fontSize: size * 1.4, fontWeight: "700", color, lineHeight: size * 1.4 }, style]}>
+        ›
+      </Text>
+    );
+  }
+
+  // Chevron down: ⌄
+  if (name === "chevron-down") {
+    return (
+      <Text style={[{ fontSize: size * 1.1, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
+        ▾
+      </Text>
+    );
+  }
+
+  // Checkmark: ✓
+  if (name === "check" || name === "check-circle") {
+    return (
+      <Text style={[{ fontSize: size, fontWeight: "800", color, lineHeight: size * 1.1 }, style]}>
+        ✓
+      </Text>
+    );
+  }
+
+  // Minus: −
+  if (name === "minus") {
+    return (
+      <Text style={[{ fontSize: size * 1.2, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
+        −
+      </Text>
+    );
+  }
+
+  // Plus: +
+  if (name === "plus") {
+    return (
+      <Text style={[{ fontSize: size * 1.2, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
+        +
+      </Text>
+    );
+  }
+
+  // Delete / Backspace
+  if (name === "delete") {
+    return (
+      <Text style={[{ fontSize: size * 1.1, fontWeight: "700", color, lineHeight: size * 1.1 }, style]}>
+        ⌫
+      </Text>
+    );
+  }
+
+  // Eye / Eye-off for password visibility
   if (name === "eye" || name === "eye-off") {
     return (
       <View
@@ -119,37 +151,27 @@ export function Icon({ name, size = 18, color = colors.ink, style }) {
     );
   }
 
-  // Custom drawn person icon
+  // User icon
   if (name === "user") {
     return (
-      <View
-        style={[
-          {
-            width: size,
-            height: size,
-            alignItems: "center",
-            justifyContent: "center",
-          },
-          style,
-        ]}
-      >
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
         <View
           style={{
-            width: Math.round(size * 0.42),
-            height: Math.round(size * 0.42),
+            width: Math.round(size * 0.44),
+            height: Math.round(size * 0.44),
             borderRadius: size,
-            borderWidth: 1.5,
+            borderWidth: 1.6,
             borderColor: color,
             marginBottom: 1,
           }}
         />
         <View
           style={{
-            width: Math.round(size * 0.72),
-            height: Math.round(size * 0.34),
+            width: Math.round(size * 0.76),
+            height: Math.round(size * 0.36),
             borderTopLeftRadius: size,
             borderTopRightRadius: size,
-            borderWidth: 1.5,
+            borderWidth: 1.6,
             borderBottomWidth: 0,
             borderColor: color,
           }}
@@ -158,28 +180,291 @@ export function Icon({ name, size = 18, color = colors.ink, style }) {
     );
   }
 
-  const glyph = glyphMap[name] || "•";
-  const isChevron = name === "chevron-left" || name === "chevron-right";
+  // Mail icon
+  if (name === "mail" || name === "at-sign") {
+    return (
+      <View style={[{ width: size, height: size * 0.75, borderWidth: 1.6, borderColor: color, borderRadius: 3, justifyContent: "flex-start", overflow: "hidden" }, style]}>
+        <View style={{ width: "100%", height: 1.5, backgroundColor: color, transform: [{ rotate: "25deg" }, { translateY: 3 }] }} />
+      </View>
+    );
+  }
+
+  // Female gender symbol
+  if (name === "gender-female") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View
+          style={{
+            width: Math.round(size * 0.6),
+            height: Math.round(size * 0.6),
+            borderRadius: size,
+            borderWidth: 1.8,
+            borderColor: color,
+          }}
+        />
+        <View style={{ width: 1.8, height: Math.round(size * 0.36), backgroundColor: color }} />
+        <View
+          style={{
+            position: "absolute",
+            bottom: Math.round(size * 0.12),
+            width: Math.round(size * 0.4),
+            height: 1.8,
+            backgroundColor: color,
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Male gender symbol
+  if (name === "gender-male") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View
+          style={{
+            width: Math.round(size * 0.62),
+            height: Math.round(size * 0.62),
+            borderRadius: size,
+            borderWidth: 1.8,
+            borderColor: color,
+            marginTop: 4,
+            marginRight: 4,
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            top: 2,
+            right: 2,
+            width: 1.8,
+            height: Math.round(size * 0.45),
+            backgroundColor: color,
+            transform: [{ rotate: "45deg" }],
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            top: 1,
+            right: 1,
+            width: Math.round(size * 0.28),
+            height: 1.8,
+            backgroundColor: color,
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            top: 1,
+            right: 1,
+            width: 1.8,
+            height: Math.round(size * 0.28),
+            backgroundColor: color,
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Table (dining / portion setup)
+  if (name === "table") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: size * 0.9, height: 2, backgroundColor: color, borderRadius: 1 }} />
+        <View style={{ width: size * 0.7, flexDirection: "row", justifyContent: "space-between", height: size * 0.45 }}>
+          <View style={{ width: 2, height: "100%", backgroundColor: color }} />
+          <View style={{ width: 2, height: "100%", backgroundColor: color }} />
+        </View>
+      </View>
+    );
+  }
+
+  // Heart (health goals)
+  if (name === "heart") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ flexDirection: "row", marginTop: -2 }}>
+          <View style={{ width: size * 0.4, height: size * 0.4, borderRadius: size * 0.2, backgroundColor: color }} />
+          <View style={{ width: size * 0.4, height: size * 0.4, borderRadius: size * 0.2, backgroundColor: color, marginLeft: -2 }} />
+        </View>
+        <View
+          style={{
+            width: size * 0.52,
+            height: size * 0.52,
+            backgroundColor: color,
+            transform: [{ rotate: "45deg" }],
+            marginTop: -size * 0.32,
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Taste (spoon / flavours)
+  if (name === "taste") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: size * 0.45, height: size * 0.55, borderRadius: size * 0.25, borderWidth: 1.8, borderColor: color }} />
+        <View style={{ width: 2, height: size * 0.45, backgroundColor: color }} />
+      </View>
+    );
+  }
+
+  // Lightbulb (get inspired)
+  if (name === "lightbulb-outline") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: size * 0.65, height: size * 0.65, borderRadius: size * 0.35, borderWidth: 1.8, borderColor: color }} />
+        <View style={{ width: size * 0.35, height: 2, backgroundColor: color, marginTop: 1 }} />
+        <View style={{ width: size * 0.2, height: 2, backgroundColor: color, marginTop: 1 }} />
+      </View>
+    );
+  }
+
+  // Chef Hat (learn to cook)
+  if (name === "chef-hat") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+          <View style={{ width: size * 0.3, height: size * 0.35, borderRadius: size * 0.15, borderWidth: 1.6, borderColor: color }} />
+          <View style={{ width: size * 0.36, height: size * 0.45, borderRadius: size * 0.18, borderWidth: 1.6, borderColor: color, marginHorizontal: -2 }} />
+          <View style={{ width: size * 0.3, height: size * 0.35, borderRadius: size * 0.15, borderWidth: 1.6, borderColor: color }} />
+        </View>
+        <View style={{ width: size * 0.72, height: 2, backgroundColor: color, marginTop: 1 }} />
+      </View>
+    );
+  }
+
+  // Piggy bank / Save money
+  if (name === "piggy-bank-outline") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: size * 0.8, height: size * 0.58, borderRadius: size * 0.26, borderWidth: 1.8, borderColor: color, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: size * 0.32, height: 1.8, backgroundColor: color }} />
+        </View>
+        <View style={{ width: size * 0.5, flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ width: 2, height: 3, backgroundColor: color }} />
+          <View style={{ width: 2, height: 3, backgroundColor: color }} />
+        </View>
+      </View>
+    );
+  }
+
+  // Trash / Less food waste
+  if (name === "trash-can-outline") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: size * 0.75, height: 2, backgroundColor: color }} />
+        <View style={{ width: size * 0.55, height: size * 0.6, borderWidth: 1.8, borderTopWidth: 0, borderColor: color, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, marginTop: 1 }} />
+      </View>
+    );
+  }
+
+  // Carrot / Eat healthy
+  if (name === "carrot") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: 1.8, height: size * 0.3, backgroundColor: color, marginBottom: 1 }} />
+        <View
+          style={{
+            width: size * 0.45,
+            height: size * 0.65,
+            borderTopLeftRadius: size * 0.2,
+            borderTopRightRadius: size * 0.2,
+            borderBottomLeftRadius: size * 0.05,
+            borderBottomRightRadius: size * 0.05,
+            borderWidth: 1.8,
+            borderColor: color,
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Clock / Quick and easy
+  if (name === "clock-outline") {
+    return (
+      <View
+        style={[
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderWidth: 1.8,
+            borderColor: color,
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          style,
+        ]}
+      >
+        <View style={{ width: 1.8, height: size * 0.32, backgroundColor: color, position: "absolute", top: size * 0.16 }} />
+        <View style={{ width: size * 0.24, height: 1.8, backgroundColor: color, position: "absolute", right: size * 0.22 }} />
+      </View>
+    );
+  }
+
+  // Scale balance / Maintain
+  if (name === "scale-balance") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View style={{ width: size * 0.85, height: 1.8, backgroundColor: color }} />
+        <View style={{ width: 1.8, height: size * 0.45, backgroundColor: color }} />
+        <View style={{ width: size * 0.45, height: 1.8, backgroundColor: color }} />
+      </View>
+    );
+  }
+
+  // Trending up / Gain
+  if (name === "trending-up") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <Text style={{ fontSize: size * 1.1, fontWeight: "800", color, lineHeight: size }}>
+          ↗
+        </Text>
+      </View>
+    );
+  }
+
+  // Flame / Lose
+  if (name === "fire") {
+    return (
+      <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, style]}>
+        <View
+          style={{
+            width: size * 0.55,
+            height: size * 0.72,
+            borderTopLeftRadius: size * 0.4,
+            borderBottomLeftRadius: size * 0.28,
+            borderBottomRightRadius: size * 0.28,
+            borderWidth: 1.8,
+            borderColor: color,
+            transform: [{ rotate: "45deg" }],
+          }}
+        />
+      </View>
+    );
+  }
+
+  // Sliders / Settings
+  if (name === "sliders") {
+    return (
+      <View style={[{ width: size, height: size, justifyContent: "space-around" }, style]}>
+        <View style={{ width: "100%", height: 1.8, backgroundColor: color }} />
+        <View style={{ width: "100%", height: 1.8, backgroundColor: color }} />
+        <View style={{ width: "100%", height: 1.8, backgroundColor: color }} />
+      </View>
+    );
+  }
 
   return (
-    <Text
-      style={[
-        {
-          fontSize: isChevron ? size * 1.35 : size * 0.92,
-          lineHeight: isChevron ? size * 1.4 : size * 1.15,
-          color,
-          fontWeight: "700",
-          textAlign: "center",
-        },
-        style,
-      ]}
-    >
-      {glyph}
+    <Text style={[{ fontSize: size, fontWeight: "700", color }, style]}>
+      •
     </Text>
   );
 }
 
-/** Fades + slides children in, optionally after a delay (for staggered lists). */
+/** Staggered fade & slide in */
 export function FadeIn({ delay = 0, from = 16, duration = 420, style, children }) {
   const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -208,7 +493,7 @@ export function FadeIn({ delay = 0, from = 16, duration = 420, style, children }
   );
 }
 
-/** Touch component with smooth native active opacity that preserves flex layout */
+/** Touch component with responsive opacity */
 export function ScalePress({ onPress, disabled, style, children, activeOpacity = 0.82, ...rest }) {
   return (
     <TouchableOpacity
@@ -245,24 +530,34 @@ export function PrimaryButton({ title, onPress, loading, disabled, icon = "arrow
   );
 }
 
+/**
+ * Authentic 4-color Google Sign-In Button with official G logo
+ */
 export function GoogleButton({ title = "Continue with Google", onPress, loading }) {
   return (
-    <ScalePress onPress={onPress} disabled={loading} style={styles.googleBtn}>
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={onPress}
+      disabled={loading}
+      style={styles.googleBtn}
+    >
       {loading ? (
         <ActivityIndicator color={colors.ink} />
       ) : (
         <>
-          <View style={styles.googleGBadge}>
-            <Text style={styles.googleGText}>G</Text>
-          </View>
+          <Image
+            source={GOOGLE_G}
+            style={{ width: 20, height: 20, marginRight: 12 }}
+            resizeMode="contain"
+          />
           <Text style={styles.googleText}>{title}</Text>
         </>
       )}
-    </ScalePress>
+    </TouchableOpacity>
   );
 }
 
-export function Divider({ label = "OR\nCONTINUE\nWITH" }) {
+export function Divider({ label = "OR CONTINUE WITH" }) {
   return (
     <View style={styles.dividerRow}>
       <View style={styles.dividerLine} />
@@ -281,14 +576,13 @@ export function BackButton({ onPress, variant = "plain" }) {
     >
       <Icon
         name={variant === "circle" ? "arrow-left" : "chevron-left"}
-        size={variant === "circle" ? 20 : 24}
+        size={variant === "circle" ? 20 : 26}
         color={colors.ink}
       />
     </ScalePress>
   );
 }
 
-/** "STEP 1 OF 3" label with animated progress pills. */
 export function StepIndicator({ step, total = 3 }) {
   return (
     <View style={{ alignItems: "flex-end" }}>
@@ -297,37 +591,24 @@ export function StepIndicator({ step, total = 3 }) {
       </Text>
       <View style={{ flexDirection: "row", marginTop: 6 }}>
         {Array.from({ length: total }).map((_, i) => (
-          <StepPill key={i} active={i < step} />
+          <View
+            key={i}
+            style={[
+              styles.stepPill,
+              {
+                width: i < step ? 22 : 12,
+                backgroundColor: i < step ? colors.primary : colors.border,
+              },
+            ]}
+          />
         ))}
       </View>
     </View>
   );
 }
 
-function StepPill({ active }) {
-  const v = useRef(new Animated.Value(active ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.timing(v, { toValue: active ? 1 : 0, duration: 350, useNativeDriver: false }).start();
-  }, [active, v]);
-  return (
-    <Animated.View
-      style={[
-        styles.stepPill,
-        {
-          width: v.interpolate({ inputRange: [0, 1], outputRange: [12, 24] }),
-          backgroundColor: v.interpolate({
-            inputRange: [0, 1],
-            outputRange: [colors.border, colors.primary],
-          }),
-        },
-      ]}
-    />
-  );
-}
-
 export function Field({
   label,
-  icon,
   value,
   onChangeText,
   placeholder,
@@ -341,36 +622,19 @@ export function Field({
 }) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
-  const f = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(f, { toValue: focused ? 1 : 0, duration: 180, useNativeDriver: false }).start();
-  }, [focused, f]);
 
   return (
     <View style={{ marginBottom: 14 }}>
       {label ? <Text style={styles.fieldLabel}>{label}</Text> : null}
-      <Animated.View
+      <View
         style={[
           styles.fieldBox,
           {
-            borderColor: error
-              ? colors.red
-              : f.interpolate({ inputRange: [0, 1], outputRange: [colors.border, colors.primary] }),
-            backgroundColor: f.interpolate({
-              inputRange: [0, 1],
-              outputRange: [colors.field, colors.white],
-            }),
+            borderColor: error ? colors.red : focused ? colors.primary : colors.border,
+            backgroundColor: focused ? colors.white : colors.field,
           },
         ]}
       >
-        {icon ? (
-          <Icon
-            name={icon}
-            size={16}
-            color={focused ? colors.primary : colors.inkSubtle}
-            style={{ marginRight: 10 }}
-          />
-        ) : null}
         <TextInput
           ref={inputRef}
           style={styles.fieldInput}
@@ -388,101 +652,20 @@ export function Field({
           returnKeyType={returnKeyType}
         />
         {secure ? (
-          <Pressable onPress={() => setHidden((h) => !h)} hitSlop={10}>
+          <TouchableOpacity onPress={() => setHidden((h) => !h)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Icon name={hidden ? "eye" : "eye-off"} size={18} color={colors.inkSubtle} />
-          </Pressable>
+          </TouchableOpacity>
         ) : null}
-      </Animated.View>
+      </View>
     </View>
   );
 }
 
-/** Red banner that shakes whenever `message` changes. */
 export function ErrorBanner({ message }) {
-  const x = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    if (!message) return;
-    Animated.sequence(
-      [10, -10, 7, -7, 3, 0].map((toValue) =>
-        Animated.timing(x, { toValue, duration: 55, useNativeDriver: true })
-      )
-    ).start();
-  }, [message, x]);
   if (!message) return null;
   return (
-    <Animated.View style={[styles.errorBox, { transform: [{ translateX: x }] }]}>
-      <View style={styles.errorDot}>
-        <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800" }}>!</Text>
-      </View>
+    <View style={styles.errorBox}>
       <Text style={styles.errorText}>{message}</Text>
-    </Animated.View>
-  );
-}
-
-/** Soft warm radial-style glow built from stacked translucent circles. */
-export function WarmGlow({ size = 340, style }) {
-  const pulse = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 2600,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0,
-          duration: 2600,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1.05] });
-  return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        {
-          position: "absolute",
-          width: size,
-          height: size,
-          alignItems: "center",
-          justifyContent: "center",
-          transform: [{ scale }],
-        },
-        style,
-      ]}
-    >
-      {[1, 0.78, 0.58, 0.4].map((k, i) => (
-        <View
-          key={i}
-          style={{
-            position: "absolute",
-            width: size * k,
-            height: size * k,
-            borderRadius: (size * k) / 2,
-            backgroundColor: colors.primaryGlow,
-            opacity: 0.11 + i * 0.04,
-          }}
-        />
-      ))}
-    </Animated.View>
-  );
-}
-
-/** Header row with the KusinApp mark beside a title (signup/onboarding). */
-export function TitleWithLogo({ title }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-      <View style={styles.logoCardSmall}>
-        <Image source={LOGO_ICON} style={{ width: 28, height: 28 }} resizeMode="contain" />
-      </View>
-      <Text style={styles.screenTitle}>{title}</Text>
     </View>
   );
 }
@@ -501,39 +684,22 @@ export const styles = StyleSheet.create({
   googleBtn: {
     height: 52,
     borderRadius: 14,
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: colors.border,
     backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  googleGBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  googleGText: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#4285F4",
-  },
   googleText: { fontSize: 15, fontWeight: "600", color: colors.ink },
   dividerRow: { flexDirection: "row", alignItems: "center", marginVertical: 18 },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: {
-    marginHorizontal: 14,
-    fontSize: 10,
+    marginHorizontal: 12,
+    fontSize: 10.5,
     letterSpacing: 1.1,
     color: colors.inkSubtle,
     fontWeight: "600",
-    textAlign: "center",
   },
   backPlain: { width: 38, height: 38, justifyContent: "center" },
   backCircle: {
@@ -563,33 +729,10 @@ export const styles = StyleSheet.create({
   },
   fieldInput: { flex: 1, fontSize: 15, color: colors.ink, height: "100%" },
   errorBox: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: colors.redSoft,
     borderRadius: 12,
     padding: 12,
     marginBottom: 14,
   },
-  errorDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.red,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-  errorText: { color: colors.red, fontSize: 13, flex: 1, fontWeight: "600" },
-  logoCardSmall: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: "#FAFAFA",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  screenTitle: { fontSize: 22, fontWeight: "800", color: colors.ink, flexShrink: 1 },
+  errorText: { color: colors.red, fontSize: 13, fontWeight: "600", textAlign: "center" },
 });

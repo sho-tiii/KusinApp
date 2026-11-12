@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -21,8 +22,6 @@ import {
   PrimaryButton,
   ScalePress,
   StepIndicator,
-  TitleWithLogo,
-  WarmGlow,
 } from "../components/ui";
 import { calculateBMI, saveMobileOnboarding } from "../services/authService";
 
@@ -87,12 +86,11 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
         : [...d[key], id],
     }));
 
-  // Horizontal slide between steps
   const slide = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(slide, {
       toValue: step,
-      duration: 380,
+      duration: 360,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
@@ -119,7 +117,6 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <WarmGlow size={460} style={{ top: -200, right: -200 }} />
       <View style={styles.topRow}>
         <BackButton onPress={back} />
         <StepIndicator step={step + 1} total={3} />
@@ -152,7 +149,7 @@ export default function OnboardingScreen({ user, profile, onExit, onDone }) {
             <GoalsStep data={data} toggleIn={toggleIn} active={step === 1} />
           </View>
           <View style={{ width }}>
-            <HealthStep data={data} set={set} active={step === 2} />
+            <HealthStep data={data} set={set} />
           </View>
         </Animated.View>
       </View>
@@ -179,15 +176,18 @@ function HouseholdStep({ value, onChange, active }) {
       </Text>
       {HOUSEHOLDS.map((h, i) => (
         <FadeIn key={h.id + active} delay={active ? 80 + i * 90 : 0}>
-          <SelectCard
-            selected={value === h.id}
+          <TouchableOpacity
+            activeOpacity={0.82}
             onPress={() => onChange(h.id)}
-            style={styles.householdCard}
+            style={[
+              styles.householdCard,
+              value === h.id ? styles.cardActive : styles.cardInactive,
+            ]}
           >
             <View style={styles.householdImgBox}>
               <Image
                 source={h.image}
-                style={{ width: 72, height: 72 }}
+                style={{ width: 68, height: 68 }}
                 resizeMode="contain"
               />
             </View>
@@ -195,7 +195,7 @@ function HouseholdStep({ value, onChange, active }) {
               <Text style={styles.cardTitle}>{h.title}</Text>
               <Text style={styles.cardDesc}>{h.desc}</Text>
             </View>
-          </SelectCard>
+          </TouchableOpacity>
         </FadeIn>
       ))}
     </ScrollView>
@@ -210,7 +210,7 @@ function GoalsStep({ data, toggleIn, active }) {
       contentContainerStyle={styles.stepScroll}
       showsVerticalScrollIndicator={false}
     >
-      <TitleWithLogo title="Set your goals & preferences" />
+      <Text style={styles.screenTitle}>Set your goals & preferences</Text>
       <Text style={styles.subtitle}>
         Tailor your Pinoy meal plans to your nutritional targets and family budget.
       </Text>
@@ -223,20 +223,28 @@ function GoalsStep({ data, toggleIn, active }) {
               delay={active ? 60 + i * 50 : 0}
               style={styles.gridItem}
             >
-              <SelectCard
-                selected={sel}
+              <TouchableOpacity
+                activeOpacity={0.82}
                 onPress={() => toggleIn("goals", g.id)}
-                style={styles.goalCard}
+                style={[
+                  styles.goalCard,
+                  sel ? styles.cardActive : styles.cardInactive,
+                ]}
               >
                 <Icon
                   name={g.icon}
-                  size={28}
+                  size={26}
                   color={sel ? colors.primaryDark : colors.inkSubtle}
                 />
-                <Text style={[styles.goalText, sel && { color: colors.ink }]}>
+                <Text
+                  style={[
+                    styles.goalText,
+                    sel && { color: colors.ink, fontWeight: "700" },
+                  ]}
+                >
                   {g.label}
                 </Text>
-              </SelectCard>
+              </TouchableOpacity>
             </FadeIn>
           );
         })}
@@ -246,8 +254,9 @@ function GoalsStep({ data, toggleIn, active }) {
         {DIETS.map((d) => {
           const sel = data.dietaryRestrictions.includes(d);
           return (
-            <ScalePress
+            <TouchableOpacity
               key={d}
+              activeOpacity={0.82}
               onPress={() => toggleIn("dietaryRestrictions", d)}
               style={[styles.chip, sel && styles.chipSel]}
             >
@@ -256,7 +265,7 @@ function GoalsStep({ data, toggleIn, active }) {
                   name="check"
                   size={12}
                   color={colors.primaryDark}
-                  style={{ marginRight: 4 }}
+                  style={{ marginRight: 5 }}
                 />
               ) : null}
               <Text
@@ -267,7 +276,7 @@ function GoalsStep({ data, toggleIn, active }) {
               >
                 {d}
               </Text>
-            </ScalePress>
+            </TouchableOpacity>
           );
         })}
       </View>
@@ -275,7 +284,7 @@ function GoalsStep({ data, toggleIn, active }) {
   );
 }
 
-/* --------------------------- Step 3 --------------------------- */
+/* --------------------------- Step 3 (Strict Grid Alignment) --------------------------- */
 
 function HealthStep({ data, set }) {
   const [editing, setEditing] = useState(null);
@@ -285,99 +294,126 @@ function HealthStep({ data, set }) {
   );
   const range =
     bmi < 18.5
-      ? { label: "Underweight", bg: "#DBEAFE", fg: "#1D4ED8" }
+      ? { label: "Underweight", fg: "#1D4ED8" }
       : bmi < 25
-      ? { label: "Healthy range", bg: "#BEF264", fg: "#15803D" }
+      ? { label: "Healthy range", fg: "#15803D" }
       : bmi < 30
-      ? { label: "Overweight", bg: "#FFEDD5", fg: colors.orange }
-      : { label: "Obese", bg: colors.redSoft, fg: colors.red };
+      ? { label: "Overweight", fg: colors.orange }
+      : { label: "Obese", fg: colors.red };
 
   return (
     <ScrollView
       contentContainerStyle={styles.stepScroll}
       showsVerticalScrollIndicator={false}
     >
-      <TitleWithLogo title="Let's set your health goals" />
+      <Text style={styles.screenTitle}>Let's set your health goals</Text>
       <Text style={styles.subtitle}>
         We'll use this to work out your daily calories. You can change it anytime.
       </Text>
 
-      <View style={styles.row}>
+      {/* Row 1: Gender (Split 50 / 50 exactly) */}
+      <View style={styles.gridRow}>
         {[
           ["female", "Female", "gender-female"],
           ["male", "Male", "gender-male"],
         ].map(([id, label, icon]) => {
           const sel = data.gender === id;
           return (
-            <SelectCard
+            <TouchableOpacity
               key={id}
-              selected={sel}
+              activeOpacity={0.82}
               onPress={() => set({ gender: id })}
-              style={styles.genderCard}
+              style={[
+                styles.gridCell,
+                styles.genderBox,
+                sel ? styles.cardActive : styles.cardInactive,
+              ]}
             >
               <View
                 style={[
-                  styles.roundIcon,
+                  styles.iconCircle,
                   sel && { backgroundColor: colors.primarySoft },
                 ]}
               >
                 <Icon
                   name={icon}
-                  size={22}
+                  size={20}
                   color={sel ? colors.primaryDark : colors.ink}
                 />
               </View>
-              <Text style={styles.cardTitleSm}>{label}</Text>
-            </SelectCard>
+              <Text
+                style={[
+                  styles.cardTitleSm,
+                  sel && { color: colors.primaryDark },
+                ]}
+              >
+                {label}
+              </Text>
+            </TouchableOpacity>
           );
         })}
       </View>
 
-      <View style={styles.row}>
+      {/* Row 2: Metrics (Split 1/3, 1/3, 1/3 exactly) */}
+      <View style={styles.gridRow}>
         {[
           ["age", "AGE", "yrs"],
           ["heightCm", "HEIGHT", "cm"],
           ["weightKg", "WEIGHT", "kg"],
         ].map(([key, label, unit]) => (
-          <ScalePress
+          <TouchableOpacity
             key={key}
+            activeOpacity={0.82}
             onPress={() => setEditing(key)}
-            style={styles.metricCard}
+            style={[styles.gridCell, styles.metricBox]}
           >
             <Text style={styles.metricLabel}>{label}</Text>
             <Text style={styles.metricValue}>
               {data[key]} <Text style={styles.metricUnit}>{unit}</Text>
             </Text>
-          </ScalePress>
+          </TouchableOpacity>
         ))}
       </View>
 
+      {/* Row 3: BMI Card */}
       <BmiCard bmi={bmi} range={range} />
 
-      <View style={styles.row}>
+      {/* Row 4: Weight Goal (Split 1/3, 1/3, 1/3 exactly, matching row above) */}
+      <View style={styles.gridRow}>
         {WEIGHT_GOALS.map((g) => {
           const sel = data.weightGoal === g.id;
           return (
-            <SelectCard
+            <TouchableOpacity
               key={g.id}
-              selected={sel}
+              activeOpacity={0.82}
               onPress={() => set({ weightGoal: g.id })}
-              style={styles.wgCard}
+              style={[
+                styles.gridCell,
+                styles.goalBox,
+                sel ? styles.cardActive : styles.cardInactive,
+              ]}
             >
               <View
                 style={[
-                  styles.roundIconSm,
+                  styles.iconCircleSm,
                   sel && { backgroundColor: colors.primarySoft },
                 ]}
               >
                 <Icon
                   name={g.icon}
-                  size={18}
+                  size={16}
                   color={sel ? colors.primaryDark : colors.ink}
                 />
               </View>
-              <Text style={styles.cardTitleSm}>{g.label}</Text>
-            </SelectCard>
+              <Text
+                style={[
+                  styles.cardTitleSm,
+                  sel && { color: colors.primaryDark },
+                ]}
+              >
+                {g.label}
+              </Text>
+            </TouchableOpacity>
           );
         })}
       </View>
@@ -431,15 +467,15 @@ function BmiCard({ bmi, range }) {
           <Text style={styles.bmiLabel}>Your BMI</Text>
           <Text style={styles.bmiValue}>{bmi || "--"}</Text>
         </View>
-        <View style={[styles.rangePill, { backgroundColor: range.bg }]}>
-          <Icon name="check-circle" size={13} color={range.fg} />
-          <Text style={[styles.rangeText, { color: range.fg }]}>
-            {range.label}
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={[styles.bmiStatusText, { color: range.fg }]}>
+            ● {range.label}
           </Text>
         </View>
       </View>
+
       <View
-        style={{ marginTop: 18 }}
+        style={{ marginTop: 16 }}
         onLayout={(e) => setW(e.nativeEvent.layout.width)}
       >
         <Animated.View
@@ -448,7 +484,7 @@ function BmiCard({ bmi, range }) {
             { transform: [{ translateX: Animated.subtract(pos, 6) }] },
           ]}
         >
-          <Icon name="menu-down" size={18} color={colors.ink} />
+          <Icon name="chevron-down" size={14} color={colors.ink} />
         </Animated.View>
         <View style={styles.bar}>
           {segs.map(([flex, color], i) => (
@@ -507,9 +543,9 @@ function MetricEditor({ field, value, onClose, onSave }) {
         <FadeIn from={40} style={styles.modalCard}>
           <Text style={styles.modalTitle}>{lim.label}</Text>
           <View style={styles.stepperRow}>
-            <ScalePress onPress={() => bump(-lim.step)} style={styles.stepBtn}>
+            <TouchableOpacity onPress={() => bump(-lim.step)} style={styles.stepBtn}>
               <Icon name="minus" size={20} color={colors.ink} />
-            </ScalePress>
+            </TouchableOpacity>
             <TextInput
               value={text}
               onChangeText={(t) => setText(t.replace(/[^0-9.]/g, ""))}
@@ -519,9 +555,9 @@ function MetricEditor({ field, value, onClose, onSave }) {
               selectTextOnFocus
             />
             <Text style={styles.stepUnit}>{lim.unit}</Text>
-            <ScalePress onPress={() => bump(lim.step)} style={styles.stepBtn}>
+            <TouchableOpacity onPress={() => bump(lim.step)} style={styles.stepBtn}>
               <Icon name="plus" size={20} color={colors.ink} />
-            </ScalePress>
+            </TouchableOpacity>
           </View>
           {!valid ? (
             <Text style={styles.modalError}>
@@ -535,62 +571,20 @@ function MetricEditor({ field, value, onClose, onSave }) {
             onPress={() => onSave(num)}
             style={{ marginTop: 16 }}
           />
-          <ScalePress
+          <TouchableOpacity
             onPress={onClose}
             style={{ alignSelf: "center", padding: 12 }}
           >
             <Text style={{ color: colors.inkMuted }}>Cancel</Text>
-          </ScalePress>
+          </TouchableOpacity>
         </FadeIn>
       </View>
     </Modal>
   );
 }
 
-/* --------------------------- Shared --------------------------- */
-
-function SelectCard({ selected, onPress, style, children }) {
-  const v = useRef(new Animated.Value(selected ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.timing(v, {
-      toValue: selected ? 1 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-  }, [selected, v]);
-  return (
-    <ScalePress onPress={onPress}>
-      <Animated.View
-        style={[
-          styles.selectBase,
-          style,
-          {
-            borderColor: v.interpolate({
-              inputRange: [0, 1],
-              outputRange: [colors.border, colors.primary],
-            }),
-            backgroundColor: v.interpolate({
-              inputRange: [0, 1],
-              outputRange: ["#ffffff", "#FFFBEB"],
-            }),
-          },
-        ]}
-      >
-        {children}
-        {selected ? (
-          <View style={styles.selCheck}>
-            <Text style={{ color: "#fff", fontSize: 10, fontWeight: "800" }}>
-              ✓
-            </Text>
-          </View>
-        ) : null}
-      </Animated.View>
-    </ScalePress>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", overflow: "hidden" },
+  container: { flex: 1, backgroundColor: "#fff" },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -600,6 +594,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   stepScroll: { paddingHorizontal: 24, paddingBottom: 24 },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: colors.ink,
+    marginBottom: 4,
+  },
   bigTitle: {
     fontSize: 25,
     fontWeight: "800",
@@ -614,64 +614,54 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 16,
   },
-  selectBase: {
-    borderWidth: 1.4,
-    borderRadius: 20,
-    backgroundColor: "#fff",
+  cardActive: {
+    borderColor: colors.primary,
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1.6,
   },
-  selCheck: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
+  cardInactive: {
+    borderColor: colors.border,
+    backgroundColor: "#fff",
+    borderWidth: 1.2,
   },
   householdCard: {
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
-    marginBottom: 14,
-    shadowColor: "#101828",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    marginBottom: 12,
+    borderRadius: 16,
   },
   householdImgBox: {
-    width: 82,
-    height: 82,
-    borderRadius: 14,
+    width: 76,
+    height: 76,
+    borderRadius: 12,
     backgroundColor: "#F4F6FB",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: 14,
   },
-  cardTitle: { fontSize: 19, fontWeight: "800", color: colors.ink },
+  cardTitle: { fontSize: 18, fontWeight: "800", color: colors.ink },
   cardDesc: {
-    fontSize: 13.5,
+    fontSize: 13,
     color: colors.inkMuted,
-    marginTop: 4,
-    lineHeight: 19,
+    marginTop: 3,
+    lineHeight: 18,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  gridItem: { width: "48%", marginBottom: 12 },
+  gridItem: { width: "48%", marginBottom: 10 },
   goalCard: {
-    height: 106,
+    height: 100,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    borderColor: colors.borderStrong,
   },
   goalText: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: "600",
     color: colors.inkMuted,
   },
@@ -680,39 +670,61 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.9,
     color: colors.inkMuted,
-    marginTop: 6,
+    marginTop: 8,
     marginBottom: 10,
   },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: colors.border,
-    borderRadius: 20,
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 7,
     backgroundColor: "#fff",
   },
   chipSel: { borderColor: colors.primary, backgroundColor: "#FFFBEB" },
   chipText: { fontSize: 13, color: colors.ink, fontWeight: "600" },
-  row: { flexDirection: "row", gap: 10, marginBottom: 12 },
-  genderCard: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 14,
-    minWidth: 145,
+
+  // Strict Grid Row & Cell
+  gridRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 12,
+    width: "100%",
   },
-  roundIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+  gridCell: {
+    flex: 1,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  genderBox: {
+    paddingVertical: 14,
+    minHeight: 96,
+  },
+  metricBox: {
+    borderWidth: 1.2,
+    borderColor: colors.border,
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    minHeight: 74,
+  },
+  goalBox: {
+    paddingVertical: 14,
+    minHeight: 96,
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.lavender,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
   },
-  roundIconSm: {
+  iconCircleSm: {
     width: 38,
     height: 38,
     borderRadius: 19,
@@ -721,18 +733,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 8,
   },
-  cardTitleSm: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  metricCard: {
-    flex: 1,
-    borderWidth: 1.4,
-    borderColor: colors.border,
-    borderRadius: 16,
-    alignItems: "center",
-    paddingVertical: 12,
+  cardTitleSm: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.ink,
+    textAlign: "center",
   },
   metricLabel: {
     fontSize: 11,
-    letterSpacing: 0.9,
+    letterSpacing: 0.8,
     color: colors.inkMuted,
     fontWeight: "600",
   },
@@ -743,38 +752,26 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   metricUnit: { fontSize: 13, fontWeight: "500", color: colors.inkMuted },
-  wgCard: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 12,
-    minWidth: 94,
-  },
+
   bmiCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 14,
     marginBottom: 12,
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: colors.border,
   },
   bmiLabel: { fontSize: 13, color: colors.inkMuted },
   bmiValue: { fontSize: 24, fontWeight: "800", color: colors.ink },
-  rangePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  rangeText: { marginLeft: 5, fontWeight: "700", fontSize: 12.5 },
-  marker: { position: "absolute", top: -18, left: 0 },
+  bmiStatusText: { fontWeight: "700", fontSize: 13 },
+  marker: { position: "absolute", top: -14, left: 0 },
   bar: { flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden" },
-  segLabel: { fontSize: 11.5, color: colors.inkMuted, textAlign: "center" },
+  segLabel: { fontSize: 11, color: colors.inkMuted, textAlign: "center" },
   disclaimer: {
     textAlign: "center",
     fontStyle: "italic",
     color: colors.inkMuted,
-    fontSize: 12,
+    fontSize: 11.5,
     marginTop: 10,
   },
   footer: {

@@ -82,22 +82,17 @@ export default function VerifyScreen({ data, onBack, onEdit, onVerified }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.topRow}>
         <BackButton variant="circle" onPress={onBack} />
-        <Image source={LOGO_ICON} style={styles.logo} resizeMode="contain" />
       </View>
 
       <FadeIn style={{ alignItems: "center", paddingHorizontal: 24 }}>
         <ScalePress onPress={onEdit}>
-          <Text style={styles.edit}>Edit</Text>
+          <Text style={styles.edit}>Edit email</Text>
         </ScalePress>
         <MailBadge />
         <Text style={styles.title}>Verify Your Account</Text>
         <Text style={styles.subtitle}>
-          Enter the 4-digit verification code we{"\n"}just sent you.
+          Enter the 4-digit verification code we{"\n"}just sent to {maskEmail(data.email)}
         </Text>
-        <View style={styles.emailPill}>
-          <Icon name="mail" size={14} color={colors.primaryDark} />
-          <Text style={styles.emailText}>{maskEmail(data.email)}</Text>
-        </View>
         <ScalePress
           onPress={() => setCode(dispatchedCode)}
           style={{ marginTop: 6 }}

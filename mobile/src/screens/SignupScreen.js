@@ -81,7 +81,7 @@ export default function SignupScreen({ initial, onBack, onLogin, onNext }) {
           </View>
 
           <FadeIn>
-            <TitleWithLogo title="Create Your Account" />
+            <Text style={styles.screenTitle}>Create Your Account</Text>
             <Text style={styles.subtitle}>
               Begin your culinary journey with homestyle Filipino meal plans tailored for your table.
             </Text>
@@ -251,6 +251,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 6,
     marginBottom: 14,
+  },
+  screenTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: colors.ink,
+    marginBottom: 6,
   },
   subtitle: {
     fontSize: 13,
