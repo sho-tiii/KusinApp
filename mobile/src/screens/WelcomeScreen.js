@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Easing,
   Image,
   SafeAreaView,
   StyleSheet,
@@ -42,6 +43,50 @@ export default function WelcomeScreen({ onLogin, onSignup }) {
   const listRef = useRef(null);
   const [index, setIndex] = useState(0);
   const [dragging, setDragging] = useState(false);
+
+  // Staggered entrance + continuous gentle float on hero illustrations
+  const heroEnter = useRef(new Animated.Value(0)).current;
+  const bottomEnter = useRef(new Animated.Value(0)).current;
+  const floatY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(heroEnter, {
+        toValue: 1,
+        duration: 520,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.delay(140),
+        Animated.spring(bottomEnter, {
+          toValue: 1,
+          friction: 7,
+          tension: 55,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatY, {
+          toValue: -6,
+          duration: 1800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatY, {
+          toValue: 6,
+          duration: 1800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    floatLoop.start();
+    return () => floatLoop.stop();
+  }, [heroEnter, bottomEnter, floatY]);
 
   // Automatic slide switching + pauses while user manually slides
   useEffect(() => {
@@ -111,7 +156,11 @@ export default function WelcomeScreen({ onLogin, onSignup }) {
                 width: width * 0.68,
                 height: width * 0.68,
                 opacity: fade,
-                transform: [{ translateX: imgShift }, { scale: imgScale }],
+                transform: [
+                  { translateX: imgShift },
+                  { translateY: floatY },
+                  { scale: imgScale },
+                ],
               },
             ]}
           />
@@ -124,71 +173,95 @@ export default function WelcomeScreen({ onLogin, onSignup }) {
     );
   };
 
+  const heroTranslateY = heroEnter.interpolate({
+    inputRange: [0, 1],
+    outputRange: [18, 0],
+  });
+  const bottomTranslateY = bottomEnter.interpolate({
+    inputRange: [0, 1],
+    outputRange: [24, 0],
+  });
+
   return (
     <SafeAreaView style={styles.container}>
-      <Animated.FlatList
-        ref={listRef}
-        data={SLIDES}
-        keyExtractor={(s) => s.key}
-        renderItem={renderSlide}
-        horizontal
-        pagingEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
-        onScrollBeginDrag={() => setDragging(true)}
-        onMomentumScrollEnd={(e) => {
-          const newIdx = Math.round(e.nativeEvent.contentOffset.x / width);
-          setIndex(newIdx);
-          setDragging(false);
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: heroEnter,
+          transform: [{ translateY: heroTranslateY }],
         }}
-        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        style={{ flex: 1 }}
-      />
+      >
+        <Animated.FlatList
+          ref={listRef}
+          data={SLIDES}
+          keyExtractor={(s) => s.key}
+          renderItem={renderSlide}
+          horizontal
+          pagingEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
+          onScrollBeginDrag={() => setDragging(true)}
+          onMomentumScrollEnd={(e) => {
+            const newIdx = Math.round(e.nativeEvent.contentOffset.x / width);
+            setIndex(newIdx);
+            setDragging(false);
+          }}
+          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+          style={{ flex: 1 }}
+        />
+      </Animated.View>
 
-      <View style={styles.dots}>
-        {SLIDES.map((_, i) => {
-          const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
-          const w = scrollX.interpolate({
-            inputRange,
-            outputRange: [7, 28, 7],
-            extrapolate: "clamp",
-          });
-          const bg = scrollX.interpolate({
-            inputRange,
-            outputRange: [colors.lavenderStrong, colors.ink, colors.lavenderStrong],
-            extrapolate: "clamp",
-          });
-          return (
-            <ScalePress key={i} onPress={() => jumpToSlide(i)} hitSlop={8}>
-              <Animated.View style={[styles.dot, { width: w, backgroundColor: bg }]} />
-            </ScalePress>
-          );
-        })}
-      </View>
+      <Animated.View
+        style={{
+          opacity: bottomEnter,
+          transform: [{ translateY: bottomTranslateY }],
+        }}
+      >
+        <View style={styles.dots}>
+          {SLIDES.map((_, i) => {
+            const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
+            const w = scrollX.interpolate({
+              inputRange,
+              outputRange: [7, 28, 7],
+              extrapolate: "clamp",
+            });
+            const bg = scrollX.interpolate({
+              inputRange,
+              outputRange: [colors.lavenderStrong, colors.ink, colors.lavenderStrong],
+              extrapolate: "clamp",
+            });
+            return (
+              <ScalePress key={i} onPress={() => jumpToSlide(i)} hitSlop={8}>
+                <Animated.View style={[styles.dot, { width: w, backgroundColor: bg }]} />
+              </ScalePress>
+            );
+          })}
+        </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          activeOpacity={0.82}
-          onPress={onLogin}
-          style={[styles.btn, styles.loginBtn]}
-        >
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.82}
-          onPress={onSignup}
-          style={[styles.btn, styles.signupBtn]}
-        >
-          <Text style={styles.signupText}>Sign up</Text>
-          <Icon name="arrow-right" size={18} color={colors.ink} style={{ marginLeft: 8 }} />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.footer}>Cook with joy • Less prep, zero stress</Text>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            onPress={onLogin}
+            style={[styles.btn, styles.loginBtn]}
+          >
+            <Text style={styles.loginText}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            onPress={onSignup}
+            style={[styles.btn, styles.signupBtn]}
+          >
+            <Text style={styles.signupText}>Sign up</Text>
+            <Icon name="arrow-right" size={18} color={colors.ink} style={{ marginLeft: 8 }} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.footer}>Cook with joy • Less prep, zero stress</Text>
+      </Animated.View>
     </SafeAreaView>
   );
 }

@@ -114,6 +114,18 @@ export default function App() {
   const [verifyNotice, setVerifyNotice] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileAppModalOpen, setMobileAppModalOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashFading, setSplashFading] = useState(false);
+
+  // Choreographed entrance splash screen (auto-transitions after 1.95s or click to skip)
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => setSplashFading(true), 1650);
+    const doneTimer = setTimeout(() => setShowSplash(false), 2050);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(doneTimer);
+    };
+  }, []);
 
   // Auto-advance welcome carousel slides every 3.4s
   useEffect(() => {
@@ -514,10 +526,48 @@ export default function App() {
         )}
 
         {/* =============================================================== */}
+        {/* CHOREOGRAPHED KUSINAPP ENTRANCE OVERLAY                         */}
+        {/* =============================================================== */}
+        {showSplash && (
+          <div
+            onClick={() => setShowSplash(false)}
+            className={`fixed inset-0 z-50 bg-white flex flex-col items-center justify-center cursor-pointer transition-all duration-400 ${
+              splashFading ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
+            }`}
+          >
+            <div className="relative flex flex-col items-center justify-center px-6">
+              {/* Warm Ambient Radial Aura */}
+              <div className="absolute w-72 h-72 rounded-full bg-amber-100/60 blur-xl pointer-events-none animate-pulse" />
+              <div className="absolute w-48 h-48 rounded-full bg-amber-200/45 pointer-events-none" />
+
+              {/* Stage 1: Emblem (Golden House + Steaming Pot + Chili + Leaves) */}
+              <img
+                src="/assets/splash-emblem.png"
+                alt="KusinApp Emblem"
+                className="relative w-52 h-auto object-contain animate-kusinapp-emblem"
+              />
+
+              {/* Stage 2: "KusinApp" Wordmark */}
+              <img
+                src="/assets/splash-wordmark.png"
+                alt="KusinApp"
+                className="relative w-56 h-auto object-contain -mt-1.5 animate-kusinapp-wordmark"
+              />
+
+              {/* Stage 3: Expanding Golden Accent Line + Tagline */}
+              <div className="relative w-12 h-0.5 rounded-full bg-amber-500 mt-3 mb-2 animate-kusinapp-line" />
+              <p className="relative text-xs font-semibold text-stone-600 tracking-[0.14em] animate-kusinapp-tagline">
+                Lasang Pinoy sa Bawat Luto.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* =============================================================== */}
         {/* NAV SECTION: HOME (AUTH + ONBOARDING + PROFILE)                 */}
         {/* =============================================================== */}
         {navSection === "home" && !currentUser && (
-          <div className="w-full max-w-[960px] bg-white border border-slate-200/80 rounded-[28px] shadow-card overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+          <div className="w-full max-w-[960px] bg-white border border-slate-200/80 rounded-[28px] shadow-card overflow-hidden grid grid-cols-1 lg:grid-cols-12 animate-kusinapp-card">
             {/* Left Column: Welcome Carousel matching Mobile WelcomeScreen */}
             <div className="lg:col-span-6 p-6 sm:p-10 bg-[#FCFBF7] border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col items-center justify-between text-center">
               <div className="min-h-[84px] flex flex-col items-center justify-center">
@@ -545,7 +595,7 @@ export default function App() {
                   key={activeSlide.key}
                   src={activeSlide.image}
                   alt="KusinApp Welcome"
-                  className="relative w-56 h-56 sm:w-64 sm:h-64 object-contain transition-all duration-300"
+                  className="relative w-56 h-56 sm:w-64 sm:h-64 object-contain transition-all duration-300 animate-kusinapp-float"
                 />
               </div>
 

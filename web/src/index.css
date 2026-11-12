@@ -38,3 +38,113 @@
       #faf7f0;
   }
 }
+
+@keyframes kusinappEmblemPop {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.48) rotate(-6deg);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.04) rotate(1.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes kusinappWordmarkUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes kusinappLineExpand {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes kusinappTaglineIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kusinappFloat {
+  0%, 100% {
+    transform: translateY(-5px);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@keyframes kusinappSteam {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.65);
+  }
+  40% {
+    opacity: 0.65;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px) scale(1.25);
+  }
+}
+
+@keyframes kusinappCardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-kusinapp-emblem {
+  animation: kusinappEmblemPop 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-kusinapp-wordmark {
+  opacity: 0;
+  animation: kusinappWordmarkUp 0.56s cubic-bezier(0.22, 1, 0.36, 1) 0.28s forwards;
+}
+
+.animate-kusinapp-line {
+  opacity: 0;
+  animation: kusinappLineExpand 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.56s forwards;
+}
+
+.animate-kusinapp-tagline {
+  opacity: 0;
+  animation: kusinappTaglineIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.62s forwards;
+}
+
+.animate-kusinapp-float {
+  animation: kusinappFloat 3.6s ease-in-out infinite;
+}
+
+.animate-kusinapp-card {
+  animation: kusinappCardEnter 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
