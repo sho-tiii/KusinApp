@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f7f4ee"
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,7 +20,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#f7f4ee"
+        "backgroundColor": "#ffffff"
       },
       "package": "com.atelier101.kusinapp",
       "googleServicesFile": "./google-services.json"
