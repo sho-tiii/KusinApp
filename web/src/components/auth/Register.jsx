@@ -377,13 +377,13 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
         confirmText="I Agree to All Terms"
         cancelText="Close"
       >
-        <div className="flex flex-col gap-3.5 text-xs text-slate-600 leading-relaxed max-h-[50vh] overflow-y-auto pr-1">
-          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-1.5 flex items-center gap-1.5">
+        <div className="flex flex-col gap-4 text-xs text-slate-600 leading-relaxed max-h-[50vh] overflow-y-auto pr-1">
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-1.5 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
-              1. Terms & Conditions
+              1. Terms &amp; Conditions
             </h4>
-            <p className="m-0">
+            <p className="m-0 text-slate-600 leading-relaxed">
               By creating a KusinApp account, you agree to use our Filipino meal planning, pantry management, and recipe recommendation platform for personal, non-commercial household use. You are responsible for maintaining the confidentiality of your account credentials.
             </p>
             <p className="mt-2 m-0 text-slate-500 italic">
@@ -391,12 +391,12 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
             </p>
           </div>
 
-          <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-1.5 flex items-center gap-1.5">
+          <div className="pt-3 border-t border-slate-100">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 mb-1.5 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              2. Privacy Policy & Health Data
+              2. Privacy Policy &amp; Health Data
             </h4>
-            <p className="m-0">
+            <p className="m-0 text-slate-600 leading-relaxed">
               KusinApp respects your privacy. Your personal profile and health metrics (biological sex, age, height, weight, BMI, BMR, dietary restrictions, allergies, and comorbidities) are stored securely in Firebase Realtime Database solely to personalize your recommended Filipino recipes and daily nutritional targets. We never sell or share your personal health data with third parties.
             </p>
           </div>

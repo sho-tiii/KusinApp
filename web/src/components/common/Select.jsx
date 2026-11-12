@@ -102,10 +102,11 @@ export default function Select({
         id={baseId}
         ref={triggerRef}
         type="button"
-        className={`w-full h-11 flex items-center justify-between gap-2 pl-3.5 pr-3 bg-white border rounded-lg text-[0.92rem] text-slate-900 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${
+        style={{ minHeight: "50px" }}
+        className={`w-full h-12 py-3.5 flex items-center justify-between gap-2 px-4 rounded-2xl border text-[0.95rem] text-slate-900 text-left transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer ${
           open
-            ? "border-amber-500 shadow-amber-ring"
-            : "border-slate-300 hover:border-slate-400 focus-visible:outline-none focus-visible:border-amber-500 focus-visible:shadow-amber-ring"
+            ? "bg-white border-amber-500 shadow-amber-ring"
+            : "bg-slate-50/80 border-slate-200 hover:border-slate-300 focus:bg-white focus:border-amber-500 focus:shadow-amber-ring"
         }`}
         role="combobox"
         aria-haspopup="listbox"

@@ -109,12 +109,12 @@ export default function ConfirmationModal({
 
         {children}
 
-        {/* Bottom actions (rounded-xl, no vibe-coded pill buttons) */}
-        <div className="flex items-center justify-end gap-2.5 mt-4">
+        {/* Bottom actions: unified rounded-full buttons matching KusinApp design */}
+        <div className="flex items-center justify-end gap-3 mt-4">
           {cancelText ? (
             <button
               type="button"
-              className="flex-1 inline-flex items-center justify-center h-11 px-5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 cursor-pointer"
+              className="flex-1 inline-flex items-center justify-center h-12 px-5 bg-white border border-slate-200 hover:border-slate-300 rounded-full text-sm font-extrabold text-slate-700 hover:bg-slate-50 transition-all disabled:opacity-50 cursor-pointer"
               onClick={onClose}
               disabled={isLoading}
             >
@@ -124,7 +124,7 @@ export default function ConfirmationModal({
           <button
             ref={confirmButtonRef}
             type="button"
-            className={`flex-1 inline-flex items-center justify-center gap-2 h-11 px-5 border rounded-xl text-sm font-bold text-white transition-all disabled:opacity-55 cursor-pointer ${getConfirmButtonClasses()}`}
+            className={`flex-1 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full text-sm font-extrabold text-white shadow-[0_8px_20px_-4px_rgba(245,158,11,0.45)] transition-all disabled:opacity-55 cursor-pointer ${getConfirmButtonClasses()}`}
             onClick={onConfirm || onClose}
             disabled={isLoading}
           >
